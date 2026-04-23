@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>🌿 AI 식물도감</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            min-height: 80vh;
+            border: 5px solid #fff;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        #appTitle {
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 700;
+            padding: 10px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.6em;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border: none;
+            padding: 12px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+            font-weight: 700;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(253, 203, 110, 0.6);
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .main-btn {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+            border: 4px solid #fff;
+            padding: 30px;
+            border-radius: 25px;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            font-weight: 700;
+        }
+
+        .main-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            text-align: center;
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border-radius: 20px;
+            font-size: 1.3em;
+            color: #333;
+            box-shadow: 0 8px 25px rgba(253, 203, 110, 0.3);
+            font-weight: 700;
+        }
+
+        .stats span {
+            color: #e17055;
+            font-weight: 900;
+            font-size: 1.5em;
+        }
+
+        .ai-status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .ai-status.ready {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: white;
+        }
+
+        .camera-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .photo-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .photo-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #333;
+            border: 3px solid #fff;
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            font-weight: 700;
+        }
+
+        .photo-btn.camera {
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+        }
+
+        .photo-btn.gallery {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+        }
+
+        #photoPreview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 5px solid #fff;
+        }
+
+        .analyzing {
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 700;
+            animation: pulse 1.5s infinite;
+        }
+
+        .analyzing .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #fab1a0, #ff7675);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .ai-results {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .ai-results h4 {
+            color: #00b894;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .result-item {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .result-item:hover {
+            transform: translateX(5px);
+            border-color: #00b894;
+        }
+
+        .result-item.selected {
+            border-color: #00b894;
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: white;
+        }
+
+        .result-item h5 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .result-item .scientific-name {
+            font-size: 0.9em;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .confidence-bar {
+            background: rgba(255,255,255,0.3);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 700;
+            transition: width 1s ease-out;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+            font-weight: 700;
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, #fab1a0, #ff7675);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .plant-card {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 4px solid #fff;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-8px) rotate(2deg);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+        }
+
+        .plant-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .plant-card-info {
+            padding: 15px;
+            text-align: center;
+            background: white;
+        }
+
+        .plant-card-info h3 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .plant-card-info p {
+            font-size: 0.9em;
+            color: #999;
+            font-weight: 600;
+        }
+
+        .empty-message {
+            text-align: center;
+            margin-top: 100px;
+            color: #999;
+        }
+
+        .empty-message p {
+            font-size: 1.3em;
+            margin: 15px 0;
+            font-weight: 700;
+        }
+
+        .empty-message p:first-child {
+            font-size: 3em;
+        }
+
+        .detail-container {
+            margin-top: 20px;
+        }
+
+        .detail-photo {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 5px solid #fff;
+        }
+
+        .detail-info {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .detail-info p {
+            color: #333;
+            line-height: 1.8;
+            font-weight: 600;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 10px;
+        }
+
+        .detail-info .scientific {
+            font-style: italic;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .quiz-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(253, 203, 110, 0.3);
+        }
+
+        .quiz-photo {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 5px solid #fff;
+        }
+
+        .quiz-question h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .quiz-option {
+            padding: 25px;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            border: 4px solid #fff;
+            border-radius: 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            font-weight: 700;
+            color: #333;
+        }
+
+        .quiz-option.correct {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: white;
+            border-color: #00b894;
+        }
+
+        .quiz-option.wrong {
+            background: linear-gradient(135deg, #ff7675, #d63031);
+            color: white;
+            border-color: #d63031;
+        }
+
+        .quiz-result {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .quiz-result h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .result-score {
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 30px;
+            border-radius: 25px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(253, 203, 110, 0.4);
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .card-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+
+            .photo-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 메인 화면 -->
+    <div id="mainScreen" class="screen active">
+        <div class="header">
+            <h1 id="appTitle">🌿 AI 식물도감 🤖</h1>
+        </div>
+        
+        <div class="ai-status ready">
+            ✅ PlantNet AI 준비 완료!
+        </div>
+        
+        <div class="button-container">
+            <button class="main-btn" onclick="goToCamera()">
+                📸 식물 촬영하기
+            </button>
+            <button class="main-btn" onclick="goToDictionary()">
+                📚 내 식물도감 보기
+            </button>
+            <button class="main-btn" onclick="goToQuiz()">
+                🎮 퀴즈 풀기
+            </button>
+        </div>
+        <div class="stats">
+            <p>🌱 등록된 식물: <span id="plantCount">0</span>개 🌱</p>
+        </div>
+    </div>
+
+    <!-- 촬영 화면 -->
+    <div id="cameraScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="goToMain()">← 뒤로</button>
+            <h2>📸 AI 식물 인식</h2>
+        </div>
+        
+        <div class="camera-container">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
+            <input type="file" id="galleryInput" accept="image/*" style="display:none">
+            
+            <div class="photo-buttons">
+                <button class="photo-btn camera" onclick="takePhoto()">
+                    📷 카메라로 촬영
+                </button>
+                <button class="photo-btn gallery" onclick="selectFromGallery()">
+                    🖼️ 갤러리에서 선택
+                </button>
+            </div>
+            
+            <div id="previewContainer" style="display:none">
+                <img id="photoPreview" alt="촬영한 사진">
+            </div>
+            
+            <div id="analyzingSection" class="analyzing" style="display:none">
+                <div class="spinner"></div>
+                <h3>🤖 PlantNet AI가 식물을 분석하고 있어요...</h3>
+                <p>전 세계 식물 데이터베이스에서 검색중!</p>
+            </div>
+
+            <div id="errorSection" class="error-message" style="display:none">
+                <h4>⚠️ 식물 인식 실패</h4>
+                <p id="errorText"></p>
+            </div>
+            
+            <div id="aiResultsSection" class="ai-results" style="display:none">
+                <h4>🎯 AI 분석 결과 (클릭해서 선택)</h4>
+                <div id="resultsList"></div>
+            </div>
+            
+            <div id="actionButtons" style="display:none; text-align:center;">
+                <button class="action-btn" id="registerBtn" onclick="registerSelectedPlant()" disabled>
+                    ✅ 도감에 등록하기
+                </button>
+                <button class="action-btn secondary" onclick="retakePhoto()">
+                    🔄 다시 선택하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 도감 화면 -->
+    <div id="dictionaryScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="goToMain()">← 뒤로</button>
+            <h2>📚 내 식물도감</h2>
+        </div>
+        
+        <div id="plantCardContainer" class="card-container"></div>
+        
+        <div id="emptyMessage" class="empty-message" style="display:none">
+            <p>🌱</p>
+            <p>아직 등록된 식물이 없어요!</p>
+            <p>바깥 활동에서 식물을 찾아보세요 🌿</p>
+        </div>
+    </div>
+
+    <!-- 상세정보 화면 -->
+    <div id="detailScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="goToDictionary()">← 뒤로</button>
+            <h2 id="detailPlantName"></h2>
+        </div>
+        
+        <div class="detail-container">
+            <img id="detailPhoto" class="detail-photo" alt="식물 사진">
+            
+            <div class="detail-info">
+                <h3>🌿 식물 정보</h3>
+                <p class="scientific" id="detailScientific"></p>
+                <p id="detailCommonNames"></p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                    📅 등록일: <span id="detailDate"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 퀴즈 화면 -->
+    <div id="quizScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="goToMain()">← 뒤로</button>
+            <h2>🎮 식물 이름 맞추기</h2>
+        </div>
+        
+        <div id="quizContainer">
+            <div class="quiz-progress">
+                <span id="quizProgress">1/5</span>
+                <span id="quizScore">⭐ 점수: 0</span>
+            </div>
+            
+            <div class="quiz-question">
+                <img id="quizPhoto" class="quiz-photo" alt="퀴즈 식물">
+                <h3>🤔 이 식물의 이름은?</h3>
+            </div>
+            
+            <div class="quiz-options">
+                <button class="quiz-option" onclick="selectAnswer(0)"></button>
+                <button class="quiz-option" onclick="selectAnswer(1)"></button>
+                <button class="quiz-option" onclick="selectAnswer(2)"></button>
+                <button class="quiz-option" onclick="selectAnswer(3)"></button>
+            </div>
+        </div>
+        
+        <div id="quizResult" class="quiz-result" style="display:none">
+            <h2 id="resultTitle"></h2>
+            <p id="resultMessage"></p>
+            <div class="result-score">
+                <span id="finalScore"></span>
+            </div>
+            <button class="action-btn" onclick="restartQuiz()">🔄 다시 풀기</button>
+            <button class="action-btn secondary" onclick="goToMain()">🏠 메인으로</button>
+        </div>
+    </div>
+
+    <script>
+        // PlantNet API 설정
+        const PLANTNET_API_KEY = '2b10JQUxZEOliyPWrIAgktkX7u';
+        const PLANTNET_API_URL = 'https://my-api.plantnet.org/v2/identify/all';
+
+        // 전역 변수
+        let plantCards = [];
+        let currentPhoto = null;
+        let currentPhotoFile = null;
+        let currentAIResults = [];
+        let selectedPlant = null;
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+
+        // PlantNet AI 식물 인식
+        async function identifyPlantWithPlantNet(imageFile) {
+            try {
+                console.log('PlantNet API 호출 시작...');
+                
+                const formData = new FormData();
+                formData.append('images', imageFile);
+                formData.append('organs', 'auto');
+                
+                const apiUrl = `${PLANTNET_API_URL}?api-key=${PLANTNET_API_KEY}`;
+                console.log('API URL:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('응답 상태:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API 오류:', errorText);
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('PlantNet 응답:', data);
+                
+                if (data.results && data.results.length > 0) {
+                    const results = data.results.slice(0, 5).map(result => {
+                        const koreanName = result.species.commonNames?.find(name => 
+                            /[가-힣]/.test(name)
+                        );
+                        
+                        return {
+                            scientificName: result.species.scientificNameWithoutAuthor,
+                            commonNames: result.species.commonNames || [],
+                            koreanName: koreanName || null,
+                            score: Math.round(result.score * 100)
+                        };
+                    });
+                    
+                    console.log('파싱된 결과:', results);
+                    return results;
+                }
+                
+                return null;
+                
+            } catch (error) {
+                console.error('PlantNet API 오류:', error);
+                throw error;
+            }
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPlantCards();
+            updatePlantCount();
+            
+            document.getElementById('cameraInput').addEventListener('change', handlePhotoCapture);
+            document.getElementById('galleryInput').addEventListener('change', handlePhotoCapture);
+        });
+
+        function loadPlantCards() {
+            const saved = localStorage.getItem('plantCards');
+            if (saved) {
+                plantCards = JSON.parse(saved);
+            }
+        }
+
+        function savePlantCards() {
+            localStorage.setItem('plantCards', JSON.stringify(plantCards));
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function goToMain() {
+            showScreen('mainScreen');
+            updatePlantCount();
+        }
+
+        function goToCamera() {
+            showScreen('cameraScreen');
+            resetCamera();
+        }
+
+        function goToDictionary() {
+            showScreen('dictionaryScreen');
+            displayPlantCards();
+        }
+
+        function goToQuiz() {
+            if (plantCards.length < 4) {
+                alert('🌱 퀴즈를 풀려면 식물을 최소 4개 이상 등록해주세요!');
+                return;
+            }
+            showScreen('quizScreen');
+            startQuiz();
+        }
+
+        function updatePlantCount() {
+            document.getElementById('plantCount').textContent = plantCards.length;
+        }
+
+        function resetCamera() {
+            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('analyzingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('aiResultsSection').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+            currentPhoto = null;
+            currentPhotoFile = null;
+            currentAIResults = [];
+            selectedPlant = null;
+        }
+
+        function takePhoto() {
+            document.getElementById('cameraInput').click();
+        }
+
+        function selectFromGallery() {
+            document.getElementById('galleryInput').click();
+        }
+
+        async function handlePhotoCapture(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            console.log('파일 선택됨:', file.name, file.type, file.size);
+            
+            currentPhotoFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                currentPhoto = e.target.result;
+                const imgElement = document.getElementById('photoPreview');
+                imgElement.src = currentPhoto;
+                
+                document.getElementById('previewContainer').style.display = 'block';
+                document.getElementById('analyzingSection').style.display = 'block';
+                document.getElementById('errorSection').style.display = 'none';
+                document.getElementById('aiResultsSection').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'none';
+                
+                try {
+                    console.log('AI 인식 시작...');
+                    const results = await identifyPlantWithPlantNet(currentPhotoFile);
+                    
+                    document.getElementById('analyzingSection').style.display = 'none';
+                    
+                    if (results && results.length > 0) {
+                        console.log('결과 표시:', results);
+                        currentAIResults = results;
+                        displayAIResults(results);
+                    } else {
+                        showError('AI가 식물을 인식하지 못했어요.\n\n다음을 확인해주세요:\n✓ 식물이 사진의 중심에 있나요?\n✓ 꽃이나 잎이 선명하게 보이나요?\n✓ 조명이 충분한가요?\n\n다른 각도에서 다시 촬영해보세요!');
+                    }
+                } catch (error) {
+                    document.getElementById('analyzingSection').style.display = 'none';
+                    
+                    let errorMsg = '식물 인식 중 오류가 발생했어요.\n\n';
+                    
+                    if (error.message.includes('404')) {
+                        errorMsg += '❌ API 키가 유효하지 않습니다.';
+                    } else if (error.message.includes('429')) {
+                        errorMsg += '⏰ 오늘의 무료 사용 횟수를 초과했어요.';
+                    } else {
+                        errorMsg += '📡 인터넷 연결을 확인해주세요.\n\n' + error.message;
+                    }
+                    
+                    showError(errorMsg);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'block';
+        }
+
+        function displayAIResults(results) {
+            const container = document.getElementById('resultsList');
+            container.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                resultDiv.onclick = () => selectAIResult(index);
+                
+                let displayName = result.koreanName || 
+                                 (result.commonNames.length > 0 ? result.commonNames[0] : '') ||
+                                 result.scientificName;
+                
+                resultDiv.innerHTML = `
+                    <h5>${displayName}</h5>
+                    <div class="scientific-name">${result.scientificName}</div>
+                    ${result.commonNames.length > 0 ? 
+                        `<div style="font-size: 0.85em; opacity: 0.7; margin-top: 3px;">
+                            ${result.commonNames.slice(0, 2).join(', ')}
+                        </div>` : ''}
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${result.score}%">
+                            ${result.score}%
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(resultDiv);
+            });
+            
+            document.getElementById('aiResultsSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'block';
+        }
+
+        function selectAIResult(index) {
+            document.querySelectorAll('.result-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.result-item')[index].classList.add('selected');
+            
+            selectedPlant = currentAIResults[index];
+            document.getElementById('registerBtn').disabled = false;
+        }
+
+        function registerSelectedPlant() {
+            if (!selectedPlant || !currentPhoto) {
+                alert('🌼 식물을 선택해주세요!');
+                return;
+            }
+            
+            const displayName = selectedPlant.koreanName || 
+                               (selectedPlant.commonNames.length > 0 ? selectedPlant.commonNames[0] : '') ||
+                               selectedPlant.scientificName;
+            
+            const newCard = {
+                id: Date.now(),
+                name: displayName,
+                scientificName: selectedPlant.scientificName,
+                commonNames: selectedPlant.commonNames,
+                koreanName: selectedPlant.koreanName,
+                photo: currentPhoto,
+                date: new Date().toLocaleDateString('ko-KR'),
+                score: selectedPlant.score
+            };
+            
+            plantCards.push(newCard);
+            savePlantCards();
+            
+            alert('🎉 ' + displayName + '이(가) 도감에 등록되었어요!');
+            
+            goToMain();
+        }
+
+        function retakePhoto() {
+            resetCamera();
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('galleryInput').value = '';
+        }
+
+        function displayPlantCards() {
+            const container = document.getElementById('plantCardContainer');
+            const emptyMessage = document.getElementById('emptyMessage');
+            
+            container.innerHTML = '';
+            
+            if (plantCards.length === 0) {
+                emptyMessage.style.display = 'block';
+                return;
+            }
+            
+            emptyMessage.style.display = 'none';
+            
+            plantCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'plant-card';
+                cardElement.onclick = () => showPlantDetail(card.id);
+                
+                cardElement.innerHTML = `
+                    <img src="${card.photo}" alt="${card.name}">
+                    <div class="plant-card-info">
+                        <h3>${card.name}</h3>
+                        <p>${card.date}</p>
+                    </div>
+                `;
+                
+                container.appendChild(cardElement);
+            });
+        }
+
+        function showPlantDetail(cardId) {
+            const card = plantCards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            document.getElementById('detailPlantName').textContent = card.name;
+            document.getElementById('detailPhoto').src = card.photo;
+            document.getElementById('detailScientific').textContent = card.scientificName;
+            document.getElementById('detailDate').textContent = card.date;
+            
+            let otherNames = '다른 이름: ';
+            if (card.commonNames && card.commonNames.length > 0) {
+                otherNames += card.commonNames.join(', ');
+            } else {
+                otherNames += '없음';
+            }
+            document.getElementById('detailCommonNames').textContent = otherNames;
+            
+            showScreen('detailScreen');
+        }
+
+        function startQuiz() {
+            document.getElementById('quizContainer').style.display = 'block';
+            document.getElementById('quizResult').style.display = 'none';
+            
+            currentQuizIndex = 0;
+            quizScore = 0;
+            
+            generateQuizQuestions();
+            showQuizQuestion();
+        }
+
+        function generateQuizQuestions() {
+            const shuffled = [...plantCards].sort(() => Math.random() - 0.5);
+            
+            quizQuestions = shuffled.slice(0, Math.min(5, shuffled.length)).map(card => {
+                const correctAnswer = card.name;
+                
+                const wrongAnswers = plantCards
+                    .filter(c => c.name !== correctAnswer)
+                    .map(c => c.name)
+                    .filter((name, index, self) => self.indexOf(name) === index)
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 3);
+                
+                const options = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
+                
+                return {
+                    photo: card.photo,
+                    correctAnswer: correctAnswer,
+                    options: options
+                };
+            });
+        }
+
+        function showQuizQuestion() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                showQuizResult();
+                return;
+            }
+            
+            const question = quizQuestions[currentQuizIndex];
+            
+            document.getElementById('quizProgress').textContent = `${currentQuizIndex + 1}/${quizQuestions.length}`;
+            document.getElementById('quizScore').textContent = `⭐ 점수: ${quizScore}`;
+            document.getElementById('quizPhoto').src = question.photo;
+            
+            const optionButtons = document.querySelectorAll('.quiz-option');
+            optionButtons.forEach((btn, index) => {
+                btn.textContent = question.options[index] || '';
+                btn.className = 'quiz-option';
+                btn.disabled = false;
+            });
+        }
+
+        function selectAnswer(optionIndex) {
+            const question = quizQuestions[currentQuizIndex];
+            const selectedAnswer = question.options[optionIndex];
+            const optionButtons = document.querySelectorAll('.quiz-option');
+            
+            optionButtons.forEach(btn => btn.disabled = true);
+            
+            if (selectedAnswer === question.correctAnswer) {
+                optionButtons[optionIndex].classList.add('correct');
+                quizScore += 20;
+            } else {
+                optionButtons[optionIndex].classList.add('wrong');
+                
+                optionButtons.forEach((btn, index) => {
+                    if (question.options[index] === question.correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            
+            setTimeout(() => {
+                currentQuizIndex++;
+                showQuizQuestion();
+            }, 1500);
+        }
+
+        function showQuizResult() {
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('quizResult').style.display = 'block';
+            
+            const percentage = (quizScore / (quizQuestions.length * 20)) * 100;
+            
+            let title, message;
+            if (percentage === 100) {
+                title = '🌟 완벽해요!';
+                message = '모든 식물을 다 알고 있네요! 🎉';
+            } else if (percentage >= 60) {
+                title = '👏 잘했어요!';
+                message = '식물 박사가 다 되었어요! 🌿';
+            } else {
+                title = '💪 다시 도전!';
+                message = '조금만 더 공부하면 완벽해요! 🌱';
+            }
+            
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('finalScore').textContent = `${quizScore}점`;
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+    </script>
+</body>
+</html>
