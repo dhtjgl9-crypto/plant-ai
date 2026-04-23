@@ -152,11 +152,6 @@
             animation: pulse 1.5s infinite;
         }
 
-        .ai-status.skip {
-            background: #FFE0B2;
-            color: #E65100;
-        }
-
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -199,10 +194,6 @@
 
         .photo-btn.gallery {
             background: #81C784;
-        }
-
-        .photo-btn.skip {
-            background: #FFB74D;
         }
 
         #photoPreview {
@@ -550,8 +541,8 @@
 
         .growth-photos {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
             margin-top: 15px;
         }
 
@@ -565,52 +556,60 @@
 
         .growth-photo-item img {
             width: 100%;
-            height: 120px;
+            height: 140px;
             object-fit: cover;
         }
 
+        .growth-photo-item .photo-info {
+            padding: 10px;
+            background: white;
+        }
+
         .growth-photo-item .date-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(46, 125, 50, 0.9);
-            color: white;
-            padding: 5px;
-            font-size: 0.75em;
-            text-align: center;
+            font-size: 0.8em;
+            color: #2E7D32;
             font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .growth-photo-item .text-label {
+            font-size: 0.85em;
+            color: #558B2F;
+            line-height: 1.4;
         }
 
         .growth-photo-item .delete-btn {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(244, 67, 54, 0.9);
+            top: 8px;
+            right: 8px;
+            background: rgba(244, 67, 54, 0.95);
             color: white;
             border: none;
-            width: 25px;
-            height: 25px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 1em;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
         .add-growth-photo {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 120px;
+            height: 140px;
             background: white;
             border: 2px dashed #81C784;
             border-radius: 15px;
             cursor: pointer;
             transition: all 0.2s;
             color: #4CAF50;
-            font-size: 2em;
+            font-size: 2.5em;
+            font-weight: bold;
         }
 
         .add-growth-photo:active {
@@ -692,7 +691,8 @@
             margin-bottom: 8px;
         }
 
-        .modal-content input {
+        .modal-content input,
+        .modal-content textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #C8E6C9;
@@ -703,7 +703,13 @@
             color: #2E7D32;
         }
 
-        .modal-content input:focus {
+        .modal-content textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
             outline: none;
             border-color: #4CAF50;
         }
@@ -821,6 +827,10 @@
             .photo-buttons {
                 flex-direction: column;
             }
+
+            .growth-photos {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -831,8 +841,8 @@
             <h1 id="appTitle">🌿 AI 식물도감 🌱</h1>
         </div>
         
-        <div class="ai-status skip">
-            💡 AI 인식 없이 바로 등록 가능!
+        <div class="ai-status ready">
+            ✅ PlantNet AI 준비 완료!
         </div>
         
         <div class="button-container">
@@ -855,7 +865,7 @@
     <div id="cameraScreen" class="screen">
         <div class="header">
             <button class="back-btn" onclick="goToMain()">← 뒤로</button>
-            <h2>📸 식물 등록하기</h2>
+            <h2>📸 AI 식물 인식</h2>
         </div>
         
         <div class="camera-container">
@@ -882,8 +892,8 @@
             </div>
 
             <div id="errorSection" class="error-message" style="display:none">
-                <h4>⚠️ AI 인식 건너뛰기</h4>
-                <p id="errorText">AI 인식을 건너뛰고 직접 입력할 수 있어요!</p>
+                <h4>⚠️ 식물 인식 실패</h4>
+                <p id="errorText"></p>
             </div>
             
             <div id="aiResultsSection" class="ai-results" style="display:none">
@@ -891,7 +901,7 @@
                 <div id="resultsList"></div>
             </div>
 
-            <!-- 직접 입력 섹션 (30개 식물) -->
+            <!-- 직접 입력 섹션 -->
             <div id="manualInputSection" class="manual-input-section" style="display:none">
                 <h4>✏️ 식물 이름 직접 입력하기</h4>
                 <input type="text" id="manualPlantName" placeholder="예: 민들레, 장미, 벚꽃..." maxlength="30">
@@ -935,7 +945,6 @@
                 <div class="plant-category">🌿 풀과 나무</div>
                 <div class="plant-suggestions">
                     <button class="suggestion-btn" onclick="selectSuggestion('강아지풀')">🌾 강아지풀</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('토끼풀')">🍀 토끼풀</button>
                     <button class="suggestion-btn" onclick="selectSuggestion('소나무')">🌲 소나무</button>
                     <button class="suggestion-btn" onclick="selectSuggestion('은행나무')">🍂 은행나무</button>
                     <button class="suggestion-btn" onclick="selectSuggestion('단풍나무')">🍁 단풍나무</button>
@@ -993,6 +1002,7 @@
                 <h3>🌿 식물 정보</h3>
                 <p class="scientific" id="detailScientific"></p>
                 <p id="detailCommonNames"></p>
+                <p id="detailCharacteristics"></p>
                 <p style="font-size: 0.9em; color: #689F38; margin-top: 10px;">
                     📅 등록일: <span id="detailDate"></span>
                 </p>
@@ -1001,12 +1011,7 @@
             <!-- 성장 과정 섹션 -->
             <div class="growth-section">
                 <h3>🌱 성장 과정</h3>
-                <div class="growth-photos" id="growthPhotos">
-                    <input type="file" id="growthPhotoInput" accept="image/*" style="display:none">
-                    <div class="add-growth-photo" onclick="addGrowthPhoto()">
-                        +
-                    </div>
-                </div>
+                <div class="growth-photos" id="growthPhotos"></div>
             </div>
 
             <div class="edit-buttons">
@@ -1030,9 +1035,38 @@
             <label>다른 이름 (선택)</label>
             <input type="text" id="editCommonNames" placeholder="쉼표로 구분">
             
+            <label>식물 특징 (선택)</label>
+            <textarea id="editCharacteristics" placeholder="예: 봄에 노란 꽃이 피고, 햇빛을 좋아해요"></textarea>
+            
             <div class="modal-buttons">
                 <button class="action-btn" onclick="saveEdit()">💾 저장</button>
                 <button class="action-btn secondary" onclick="closeEditModal()">❌ 취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 성장과정 추가 모달 -->
+    <div id="growthModal" class="modal">
+        <div class="modal-content">
+            <h3>🌱 성장 과정 추가</h3>
+            
+            <input type="file" id="growthPhotoInput" accept="image/*" style="display:none">
+            
+            <label>사진 선택</label>
+            <button class="action-btn" onclick="document.getElementById('growthPhotoInput').click()">
+                📷 사진 선택하기
+            </button>
+            
+            <div id="growthPreview" style="margin: 15px 0; display:none;">
+                <img id="growthPreviewImg" style="max-width: 100%; border-radius: 15px; border: 2px solid #C8E6C9;">
+            </div>
+            
+            <label>메모 (선택)</label>
+            <textarea id="growthText" placeholder="예: 첫 번째 잎이 나왔어요!"></textarea>
+            
+            <div class="modal-buttons">
+                <button class="action-btn" id="saveGrowthBtn" onclick="saveGrowthPhoto()" disabled>💾 저장</button>
+                <button class="action-btn secondary" onclick="closeGrowthModal()">❌ 취소</button>
             </div>
         </div>
     </div>
@@ -1075,6 +1109,10 @@
     </div>
 
     <script>
+        // PlantNet API 설정
+        const PLANTNET_API_KEY = '2b10JQUxZEOliyPWrIAgktkX7u';
+        const PLANTNET_API_URL = 'https://my-api.plantnet.org/v2/identify/all';
+
         // 전역 변수
         let plantCards = [];
         let currentPhoto = null;
@@ -1086,6 +1124,111 @@
         let quizScore = 0;
         let manualInputMode = false;
         let currentEditingCardId = null;
+        let tempGrowthPhoto = null;
+
+        // PlantNet AI 식물 인식
+        async function identifyPlantWithPlantNet(imageFile) {
+            try {
+                console.log('PlantNet API 호출 시작...');
+                
+                // 이미지 리사이징
+                const resizedFile = await resizeImage(imageFile, 1024);
+                
+                const formData = new FormData();
+                formData.append('images', resizedFile);
+                formData.append('organs', 'auto');
+                
+                const apiUrl = `${PLANTNET_API_URL}?api-key=${PLANTNET_API_KEY}`;
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`API_ERROR_${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    const results = data.results.slice(0, 5).map(result => {
+                        const koreanName = result.species.commonNames?.find(name => 
+                            /[가-힣]/.test(name)
+                        );
+                        
+                        return {
+                            scientificName: result.species.scientificNameWithoutAuthor,
+                            commonNames: result.species.commonNames || [],
+                            koreanName: koreanName || null,
+                            score: Math.round(result.score * 100)
+                        };
+                    });
+                    
+                    return results;
+                }
+                
+                return null;
+                
+            } catch (error) {
+                console.error('PlantNet API 오류:', error);
+                throw error;
+            }
+        }
+
+        // 이미지 리사이징
+        function resizeImage(file, maxSize) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        if (width > height) {
+                            if (width > maxSize) {
+                                height *= maxSize / width;
+                                width = maxSize;
+                            }
+                        } else {
+                            if (height > maxSize) {
+                                width *= maxSize / height;
+                                height = maxSize;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(new File([blob], file.name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                }));
+                            } else {
+                                reject(new Error('이미지 변환 실패'));
+                            }
+                        }, 'image/jpeg', 0.85);
+                    };
+                    img.onerror = () => reject(new Error('이미지 로드 실패'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('파일 읽기 실패'));
+                reader.readAsDataURL(file);
+            });
+        }
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -1094,9 +1237,8 @@
             
             document.getElementById('cameraInput').addEventListener('change', handlePhotoCapture);
             document.getElementById('galleryInput').addEventListener('change', handlePhotoCapture);
-            document.getElementById('growthPhotoInput').addEventListener('change', handleGrowthPhotoCapture);
+            document.getElementById('growthPhotoInput').addEventListener('change', handleGrowthPhotoSelect);
             
-            // 직접 입력 필드 이벤트
             document.getElementById('manualPlantName').addEventListener('input', function(e) {
                 const value = e.target.value.trim();
                 document.getElementById('registerBtn').disabled = value.length === 0;
@@ -1176,15 +1318,11 @@
             const file = event.target.files[0];
             if (!file) return;
             
-            console.log('파일 선택됨:', file.name, file.type, file.size);
-            
-            // 파일 타입 확인
             if (!file.type.startsWith('image/')) {
                 alert('이미지 파일만 선택할 수 있어요!');
                 return;
             }
             
-            // 파일 크기 확인 (20MB 제한)
             if (file.size > 20 * 1024 * 1024) {
                 alert('파일 크기가 너무 커요! (최대 20MB)');
                 return;
@@ -1195,13 +1333,42 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 currentPhoto = e.target.result;
-                const imgElement = document.getElementById('photoPreview');
-                imgElement.src = currentPhoto;
-                
+                document.getElementById('photoPreview').src = currentPhoto;
                 document.getElementById('previewContainer').style.display = 'block';
+                document.getElementById('analyzingSection').style.display = 'block';
+                document.getElementById('errorSection').style.display = 'none';
+                document.getElementById('aiResultsSection').style.display = 'none';
+                document.getElementById('manualInputSection').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'none';
                 
-                // AI 인식 건너뛰고 바로 직접 입력 모드로
-                showManualInput('사진을 선택했어요! 🌿\n\n아래에서 식물 이름을 입력해주세요!');
+                try {
+                    const results = await identifyPlantWithPlantNet(currentPhotoFile);
+                    
+                    document.getElementById('analyzingSection').style.display = 'none';
+                    
+                    if (results && results.length > 0) {
+                        currentAIResults = results;
+                        displayAIResults(results);
+                    } else {
+                        showManualInput('AI가 식물을 인식하지 못했어요 😢\n\n아래에서 식물 이름을 직접 선택하거나 입력해주세요!');
+                    }
+                } catch (error) {
+                    document.getElementById('analyzingSection').style.display = 'none';
+                    
+                    let errorMsg = '🔧 AI 인식에 실패했어요\n\n';
+                    
+                    if (error.message === 'TIMEOUT' || error.name === 'AbortError') {
+                        errorMsg += '⏰ 시간이 너무 오래 걸렸어요\n';
+                    } else if (error.message.includes('API_ERROR_429')) {
+                        errorMsg += '⏰ 오늘의 무료 사용 횟수 초과\n';
+                    } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                        errorMsg += '📡 인터넷 연결을 확인해주세요\n';
+                    }
+                    
+                    errorMsg += '\n아래에서 식물 이름을 직접 선택하거나 입력할 수 있어요!';
+                    
+                    showManualInput(errorMsg);
+                }
             };
             
             reader.onerror = function() {
@@ -1220,10 +1387,64 @@
             manualInputMode = true;
         }
 
+        function displayAIResults(results) {
+            const container = document.getElementById('resultsList');
+            container.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                resultDiv.onclick = () => selectAIResult(index);
+                
+                let displayName = result.koreanName || 
+                                 (result.commonNames.length > 0 ? result.commonNames[0] : '') ||
+                                 result.scientificName;
+                
+                resultDiv.innerHTML = `
+                    <h5>${displayName}</h5>
+                    <div class="scientific-name">${result.scientificName}</div>
+                    ${result.commonNames.length > 0 ? 
+                        `<div style="font-size: 0.85em; color: #689F38; margin-top: 3px;">
+                            ${result.commonNames.slice(0, 2).join(', ')}
+                        </div>` : ''}
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${result.score}%">
+                            ${result.score}%
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(resultDiv);
+            });
+            
+            document.getElementById('aiResultsSection').style.display = 'block';
+            document.getElementById('manualInputSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'block';
+            document.getElementById('registerBtn').disabled = true;
+        }
+
+        function selectAIResult(index) {
+            document.querySelectorAll('.result-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.result-item')[index].classList.add('selected');
+            
+            selectedPlant = currentAIResults[index];
+            document.getElementById('registerBtn').disabled = false;
+            manualInputMode = false;
+            document.getElementById('manualPlantName').value = '';
+        }
+
         function selectSuggestion(plantName) {
             document.getElementById('manualPlantName').value = plantName;
             document.getElementById('registerBtn').disabled = false;
             manualInputMode = true;
+            
+            document.querySelectorAll('.result-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            selectedPlant = null;
         }
 
         function registerPlant() {
@@ -1232,22 +1453,40 @@
                 return;
             }
             
-            const plantName = document.getElementById('manualPlantName').value.trim();
-            if (!plantName) {
-                alert('🌼 식물 이름을 입력해주세요!');
+            let plantName, scientificName, commonNames, koreanName;
+            
+            if (manualInputMode || document.getElementById('manualPlantName').value.trim()) {
+                plantName = document.getElementById('manualPlantName').value.trim();
+                if (!plantName) {
+                    alert('🌼 식물 이름을 입력해주세요!');
+                    return;
+                }
+                scientificName = '직접 입력';
+                commonNames = [plantName];
+                koreanName = plantName;
+            } else if (selectedPlant) {
+                plantName = selectedPlant.koreanName || 
+                           (selectedPlant.commonNames.length > 0 ? selectedPlant.commonNames[0] : '') ||
+                           selectedPlant.scientificName;
+                scientificName = selectedPlant.scientificName;
+                commonNames = selectedPlant.commonNames;
+                koreanName = selectedPlant.koreanName;
+            } else {
+                alert('🌼 식물을 선택하거나 이름을 입력해주세요!');
                 return;
             }
             
             const newCard = {
                 id: Date.now(),
                 name: plantName,
-                scientificName: '직접 입력',
-                commonNames: [plantName],
-                koreanName: plantName,
+                scientificName: scientificName,
+                commonNames: commonNames,
+                koreanName: koreanName,
                 photo: currentPhoto,
                 date: new Date().toLocaleDateString('ko-KR'),
-                score: 100,
-                growthPhotos: [] // 성장 과정 사진 배열
+                score: selectedPlant ? selectedPlant.score : 100,
+                characteristics: '',
+                growthPhotos: []
             };
             
             plantCards.push(newCard);
@@ -1313,7 +1552,14 @@
             }
             document.getElementById('detailCommonNames').textContent = otherNames;
             
-            // 성장 과정 사진 표시
+            const charElement = document.getElementById('detailCharacteristics');
+            if (card.characteristics && card.characteristics.trim()) {
+                charElement.textContent = '특징: ' + card.characteristics;
+                charElement.style.display = 'block';
+            } else {
+                charElement.style.display = 'none';
+            }
+            
             displayGrowthPhotos(card);
             
             showScreen('detailScreen');
@@ -1323,33 +1569,43 @@
             const container = document.getElementById('growthPhotos');
             container.innerHTML = '';
             
-            // 성장 과정 사진들 표시
             if (card.growthPhotos && card.growthPhotos.length > 0) {
                 card.growthPhotos.forEach((photo, index) => {
                     const photoDiv = document.createElement('div');
                     photoDiv.className = 'growth-photo-item';
                     photoDiv.innerHTML = `
                         <img src="${photo.image}" alt="성장 ${index + 1}">
-                        <div class="date-label">${photo.date}</div>
+                        <div class="photo-info">
+                            <div class="date-label">${photo.date}</div>
+                            ${photo.text ? `<div class="text-label">${photo.text}</div>` : ''}
+                        </div>
                         <button class="delete-btn" onclick="deleteGrowthPhoto(${index})">×</button>
                     `;
                     container.appendChild(photoDiv);
                 });
             }
             
-            // 추가 버튼
             const addBtn = document.createElement('div');
             addBtn.className = 'add-growth-photo';
-            addBtn.onclick = addGrowthPhoto;
+            addBtn.onclick = openGrowthModal;
             addBtn.textContent = '+';
             container.appendChild(addBtn);
         }
 
-        function addGrowthPhoto() {
-            document.getElementById('growthPhotoInput').click();
+        function openGrowthModal() {
+            document.getElementById('growthText').value = '';
+            document.getElementById('growthPreview').style.display = 'none';
+            document.getElementById('saveGrowthBtn').disabled = true;
+            tempGrowthPhoto = null;
+            document.getElementById('growthModal').classList.add('active');
         }
 
-        function handleGrowthPhotoCapture(event) {
+        function closeGrowthModal() {
+            document.getElementById('growthModal').classList.remove('active');
+            document.getElementById('growthPhotoInput').value = '';
+        }
+
+        function handleGrowthPhotoSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
             
@@ -1360,28 +1616,38 @@
             
             const reader = new FileReader();
             reader.onload = function(e) {
-                const card = plantCards.find(c => c.id === currentEditingCardId);
-                if (!card) return;
-                
-                if (!card.growthPhotos) {
-                    card.growthPhotos = [];
-                }
-                
-                card.growthPhotos.push({
-                    image: e.target.result,
-                    date: new Date().toLocaleDateString('ko-KR')
-                });
-                
-                savePlantCards();
-                displayGrowthPhotos(card);
-                
-                alert('🌱 성장 과정 사진이 추가되었어요!');
+                tempGrowthPhoto = e.target.result;
+                document.getElementById('growthPreviewImg').src = tempGrowthPhoto;
+                document.getElementById('growthPreview').style.display = 'block';
+                document.getElementById('saveGrowthBtn').disabled = false;
             };
-            
             reader.readAsDataURL(file);
+        }
+
+        function saveGrowthPhoto() {
+            if (!tempGrowthPhoto) {
+                alert('사진을 선택해주세요!');
+                return;
+            }
             
-            // input 초기화
-            event.target.value = '';
+            const card = plantCards.find(c => c.id === currentEditingCardId);
+            if (!card) return;
+            
+            if (!card.growthPhotos) {
+                card.growthPhotos = [];
+            }
+            
+            card.growthPhotos.push({
+                image: tempGrowthPhoto,
+                date: new Date().toLocaleDateString('ko-KR'),
+                text: document.getElementById('growthText').value.trim()
+            });
+            
+            savePlantCards();
+            displayGrowthPhotos(card);
+            closeGrowthModal();
+            
+            alert('🌱 성장 과정이 추가되었어요!');
         }
 
         function deleteGrowthPhoto(index) {
@@ -1404,6 +1670,7 @@
             document.getElementById('editName').value = card.name;
             document.getElementById('editScientific').value = card.scientificName === '직접 입력' ? '' : card.scientificName;
             document.getElementById('editCommonNames').value = card.commonNames ? card.commonNames.join(', ') : '';
+            document.getElementById('editCharacteristics').value = card.characteristics || '';
             
             document.getElementById('editModal').classList.add('active');
         }
@@ -1427,6 +1694,8 @@
             
             const commonNamesInput = document.getElementById('editCommonNames').value.trim();
             card.commonNames = commonNamesInput ? commonNamesInput.split(',').map(n => n.trim()) : [newName];
+            
+            card.characteristics = document.getElementById('editCharacteristics').value.trim();
             
             savePlantCards();
             closeEditModal();
