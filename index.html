@@ -194,7 +194,8 @@
     }
 
     .upload-preview-box img,
-    .quiz-image-box img {
+    .quiz-image-box img,
+    .book-photo {
       width: 100%;
       max-width: 320px;
       height: auto;
@@ -542,7 +543,7 @@
       <div class="card">
         <h2>식물 퀴즈</h2>
         <p class="sub-text">
-          식물 사진을 보고 정답을 골라보세요.<br />
+          식물도감에 등록한 식물 사진만 문제로 나와요.<br />
           최대 10문제까지 풀 수 있어요.
         </p>
 
@@ -552,7 +553,7 @@
 
         <div id="quiz-game-area" style="display:none;">
           <div class="quiz-status">
-            <div>문제: <span id="quiz-number">1</span> / 10</div>
+            <div>문제: <span id="quiz-number">1</span> / <span id="quiz-total">10</span></div>
             <div>점수: <span id="quiz-score">0</span></div>
           </div>
 
@@ -580,49 +581,6 @@
     let tmRunning = false;
     let selectedPlant = null;
     let uploadedImageData = null;
-
-    const QUIZ_DATA = [
-      {
-        name: "장미",
-        image: "https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "해바라기",
-        image: "https://images.unsplash.com/photo-1470509037663-253afd7f0f51?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "민들레",
-        image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "벚꽃",
-        image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "개나리",
-        image: "https://images.unsplash.com/photo-1455659817273-f96807779a8a?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "소나무",
-        image: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "튤립",
-        image: "https://images.unsplash.com/photo-1468327768560-75b778cbb551?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "라벤더",
-        image: "https://images.unsplash.com/photo-1499002238440-d264edd596ec?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "백합",
-        image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        name: "수국",
-        image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94?auto=format&fit=crop&w=800&q=80"
-      }
-    ];
 
     let quizQuestions = [];
     let quizCurrentIndex = 0;
@@ -809,6 +767,22 @@
         `직접 선택한 식물은 <strong>${escapeHtml(name)}</strong> 이에요.`;
     }
 
+    function getCurrentCapturedImage() {
+      if (uploadedImageData) {
+        return uploadedImageData;
+      }
+
+      if (webcam && webcam.canvas) {
+        try {
+          return webcam.canvas.toDataURL("image/png");
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      return "";
+    }
+
     function getPlantBook() {
       return JSON.parse(localStorage.getItem("ourPlantBook") || "[]");
     }
@@ -824,13 +798,14 @@
       }
 
       const plantBook = getPlantBook();
+      const currentImage = getCurrentCapturedImage();
 
       const newPlant = {
         id: Date.now(),
         name: selectedPlant,
         date: new Date().toLocaleDateString("ko-KR"),
         memo: "",
-        image: uploadedImageData || ""
+        image: currentImage
       };
 
       plantBook.unshift(newPlant);
@@ -868,7 +843,7 @@
         <div class="plant-card">
           ${
             plant.image
-              ? `<div style="margin-bottom:10px;"><img src="${plant.image}" alt="${escapeHtml(plant.name)}" style="width:100%; border-radius:16px; border:2px solid #f0dfb9;"></div>`
+              ? `<div style="margin-bottom:10px;"><img class="book-photo" src="${plant.image}" alt="${escapeHtml(plant.name)}"></div>`
               : ""
           }
           <div class="plant-top">
@@ -924,7 +899,7 @@
       document.getElementById("quiz-feedback").style.display = "none";
       document.getElementById("quiz-feedback").innerHTML = "";
       document.getElementById("quiz-image-box").innerHTML = `
-        <div class="camera-placeholder">퀴즈를 시작하면 식물 사진이 나와요 🌼</div>
+        <div class="camera-placeholder">퀴즈를 시작하면 식물도감 사진이 나와요 🌼</div>
       `;
       document.getElementById("quiz-options").innerHTML = "";
     }
@@ -938,13 +913,35 @@
       return copied;
     }
 
+    function getQuizCandidates() {
+      const plantBook = getPlantBook();
+      return plantBook.filter(item => item.image && item.name);
+    }
+
+    function getUniqueQuizNames(candidates) {
+      return [...new Set(candidates.map(item => item.name))];
+    }
+
     function startQuiz() {
-      const shuffled = shuffleArray(QUIZ_DATA);
-      quizQuestions = shuffled.slice(0, 10);
+      const candidates = getQuizCandidates();
+      const uniqueNames = getUniqueQuizNames(candidates);
+
+      if (candidates.length === 0) {
+        alert("퀴즈를 하려면 먼저 사진이 있는 식물을 식물도감에 등록해주세요.");
+        return;
+      }
+
+      if (uniqueNames.length < 4) {
+        alert("4지선다 퀴즈를 하려면 서로 다른 식물 이름이 최소 4개 필요해요.");
+        return;
+      }
+
+      quizQuestions = shuffleArray(candidates).slice(0, Math.min(10, candidates.length));
       quizCurrentIndex = 0;
       quizScore = 0;
       quizAnswered = false;
 
+      document.getElementById("quiz-total").textContent = quizQuestions.length;
       document.getElementById("quiz-start-box").style.display = "none";
       document.getElementById("quiz-game-area").style.display = "block";
       document.getElementById("quiz-end-box").style.display = "none";
@@ -976,9 +973,9 @@
     }
 
     function buildQuizOptions(correctName) {
-      const allNames = QUIZ_DATA.map(item => item.name).filter(name => name !== correctName);
-      const shuffledWrong = shuffleArray(allNames).slice(0, 3);
-      return shuffleArray([correctName, ...shuffledWrong]);
+      const uniqueNames = getUniqueQuizNames(getQuizCandidates()).filter(name => name !== correctName);
+      const wrongChoices = shuffleArray(uniqueNames).slice(0, 3);
+      return shuffleArray([correctName, ...wrongChoices]);
     }
 
     function chooseQuizAnswer(selected) {
@@ -1021,7 +1018,7 @@
       endBox.innerHTML = `
         <h3 style="margin-bottom:10px;">퀴즈 끝!</h3>
         <p style="margin:0 0 14px; line-height:1.6;">
-          총 10문제 중 <strong>${quizScore}</strong>문제를 맞혔어요 🌿
+          총 <strong>${quizQuestions.length}</strong>문제 중 <strong>${quizScore}</strong>문제를 맞혔어요 🌿
         </p>
         <div class="row-2" style="margin-bottom:0;">
           <button class="cute-btn blue" onclick="startQuiz()">다시 하기</button>
