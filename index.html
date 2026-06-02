@@ -21,7 +21,7 @@
     }
 
     .app {
-      max-width: 440px;
+      max-width: 460px;
       margin: 0 auto;
       min-height: 100vh;
       padding: 18px 14px 40px;
@@ -112,6 +112,12 @@
       box-shadow: 0 4px 0 #e7b6bf;
     }
 
+    .cute-btn.blue {
+      background: #dcecff;
+      color: #41627a;
+      box-shadow: 0 4px 0 #bdd6ef;
+    }
+
     .cute-btn.line {
       background: #ffffff;
       color: #6e6257;
@@ -164,7 +170,8 @@
     }
 
     .webcam-box,
-    .upload-preview-box {
+    .upload-preview-box,
+    .quiz-image-box {
       min-height: 310px;
       background: #fef6e7;
       border: 2px dashed #e8cea0;
@@ -186,9 +193,10 @@
       background: #fff;
     }
 
-    .upload-preview-box img {
+    .upload-preview-box img,
+    .quiz-image-box img {
       width: 100%;
-      max-width: 300px;
+      max-width: 320px;
       height: auto;
       object-fit: contain;
       border-radius: 18px;
@@ -347,10 +355,70 @@
       line-height: 1.6;
     }
 
+    .quiz-status {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #5c6c4b;
+      background: #f4f9ea;
+      border: 2px solid #d7e6bb;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .quiz-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .quiz-option {
+      width: 100%;
+      border: 2px solid #e6d5ad;
+      border-radius: 16px;
+      background: #fffdf8;
+      color: #584c40;
+      padding: 13px 14px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .quiz-option:hover {
+      background: #fff7e8;
+    }
+
+    .quiz-feedback {
+      margin-top: 14px;
+      background: #fff;
+      border: 2px solid #efdfbc;
+      border-radius: 16px;
+      padding: 12px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .quiz-end-box {
+      text-align: center;
+      background: #fff;
+      border: 2px solid #efdfbc;
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: 12px;
+    }
+
     @media (max-width: 380px) {
       .row-2,
       .small-row {
         grid-template-columns: 1fr;
+      }
+
+      .quiz-status {
+        flex-direction: column;
       }
     }
   </style>
@@ -370,8 +438,9 @@
 
       <div class="card">
         <div class="menu-grid">
-          <button class="cute-btn" onclick="showScreen('ai-screen')">📷 식물 인식하기</button>
-          <button class="cute-btn soft" onclick="showScreen('book-screen'); renderPlantBook();">📚 내 식물도감</button>
+          <button class="cute-btn" onclick="showScreen('ai-screen')">📷 식물 사진 찍기</button>
+          <button class="cute-btn soft" onclick="showScreen('book-screen'); renderPlantBook();">📚 식물도감 보기</button>
+          <button class="cute-btn blue" onclick="openQuizScreen()">🎯 퀴즈 풀기</button>
           <button class="cute-btn pink" onclick="showGuide()">🌼 사용 방법 보기</button>
         </div>
       </div>
@@ -379,8 +448,8 @@
       <div class="card">
         <h3>앱 소개</h3>
         <p class="sub-text">
-          카메라 또는 갤러리 사진으로 식물을 인식할 수 있어요.<br />
-          마음에 드는 결과를 골라 도감에 저장해보세요.
+          카메라 또는 갤러리 사진으로 식물을 찾고,
+          식물도감에 등록한 뒤 퀴즈도 풀 수 있어요.
         </p>
       </div>
     </section>
@@ -389,10 +458,10 @@
       <button class="back-btn" onclick="goHome()">← 홈으로</button>
 
       <div class="card">
-        <h2>식물 친구 찾기</h2>
+        <h2>식물 사진 찍기</h2>
         <p class="sub-text">
-          카메라를 켜서 바로 인식하거나,<br />
-          갤러리 사진을 올려서 식물을 찾아보세요.
+          카메라를 켜서 바로 사진을 보거나,<br />
+          갤러리 사진을 올려 식물을 찾아보세요.
         </p>
 
         <div class="row-2">
@@ -445,12 +514,12 @@
         </div>
 
         <div class="row-2" style="margin-top:16px;">
-          <button class="cute-btn soft" onclick="saveDetectedPlant()">도감에 등록하기</button>
+          <button class="cute-btn soft" onclick="saveDetectedPlant()">식물도감에 등록하기</button>
           <button class="cute-btn line" onclick="resetPrediction()">다시 선택하기</button>
         </div>
 
         <div class="footer-note">
-          카메라와 사진 업로드 중 편한 방법으로 사용하면 돼요.
+          카메라와 갤러리 사진 중 편한 방법으로 사용하면 돼요.
         </div>
       </div>
     </section>
@@ -459,11 +528,44 @@
       <button class="back-btn" onclick="goHome()">← 홈으로</button>
 
       <div class="card">
-        <h2>내 식물도감</h2>
+        <h2>식물도감</h2>
         <p class="sub-text">
-          등록한 식물들을 확인하고 메모를 남겨보세요.
+          등록한 식물을 확인하고 메모를 남겨보세요.
         </p>
         <div id="book-list" class="book-list"></div>
+      </div>
+    </section>
+
+    <section id="quiz-screen" class="screen">
+      <button class="back-btn" onclick="goHome()">← 홈으로</button>
+
+      <div class="card">
+        <h2>식물 퀴즈</h2>
+        <p class="sub-text">
+          식물 사진을 보고 정답을 골라보세요.<br />
+          최대 10문제까지 풀 수 있어요.
+        </p>
+
+        <div id="quiz-start-box">
+          <button class="cute-btn blue" onclick="startQuiz()">퀴즈 시작하기</button>
+        </div>
+
+        <div id="quiz-game-area" style="display:none;">
+          <div class="quiz-status">
+            <div>문제: <span id="quiz-number">1</span> / 10</div>
+            <div>점수: <span id="quiz-score">0</span></div>
+          </div>
+
+          <div id="quiz-image-box" class="quiz-image-box">
+            <div class="camera-placeholder">퀴즈 사진을 준비 중이에요 🌼</div>
+          </div>
+
+          <div class="quiz-options" id="quiz-options"></div>
+
+          <div id="quiz-feedback" class="quiz-feedback" style="display:none;"></div>
+        </div>
+
+        <div id="quiz-end-box" class="quiz-end-box" style="display:none;"></div>
       </div>
     </section>
   </div>
@@ -477,7 +579,55 @@
     let maxPredictions = 0;
     let tmRunning = false;
     let selectedPlant = null;
-    let uploadedImageEl = null;
+    let uploadedImageData = null;
+
+    const QUIZ_DATA = [
+      {
+        name: "장미",
+        image: "https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "해바라기",
+        image: "https://images.unsplash.com/photo-1470509037663-253afd7f0f51?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "민들레",
+        image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "벚꽃",
+        image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "개나리",
+        image: "https://images.unsplash.com/photo-1455659817273-f96807779a8a?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "소나무",
+        image: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "튤립",
+        image: "https://images.unsplash.com/photo-1468327768560-75b778cbb551?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "라벤더",
+        image: "https://images.unsplash.com/photo-1499002238440-d264edd596ec?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "백합",
+        image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "수국",
+        image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94?auto=format&fit=crop&w=800&q=80"
+      }
+    ];
+
+    let quizQuestions = [];
+    let quizCurrentIndex = 0;
+    let quizScore = 0;
+    let quizAnswered = false;
 
     function showScreen(screenId) {
       document.querySelectorAll(".screen").forEach(screen => {
@@ -494,11 +644,11 @@
     function showGuide() {
       alert(
         "사용 방법 🌱\n\n" +
-        "1. 식물 인식하기로 이동해요.\n" +
-        "2. 카메라를 켜거나 갤러리 사진을 선택해요.\n" +
-        "3. AI 결과를 확인해요.\n" +
-        "4. 도감에 등록하기를 누르면 저장돼요.\n" +
-        "5. 내 식물도감에서 메모도 남길 수 있어요."
+        "1. 식물 사진 찍기에 들어가요\n" +
+        "2. 카메라로 사진을 찍거나 갤러리에 있는 사진을 선택해요\n" +
+        "3. 식물도감에 식물을 등록해요\n" +
+        "4. 식물도감에서 식물을 확인해요\n" +
+        "5. 퀴즈를 풀며 놀아요"
       );
     }
 
@@ -572,11 +722,11 @@
         reader.onload = function(e) {
           const img = new Image();
           img.onload = async function() {
-            uploadedImageEl = img;
-
             const previewBox = document.getElementById("upload-preview-box");
             previewBox.innerHTML = "";
             previewBox.appendChild(img);
+
+            uploadedImageData = e.target.result;
 
             document.getElementById("best-result").innerHTML = "사진을 분석 중이에요...";
             await runPrediction(img, "upload");
@@ -602,7 +752,7 @@
       if (best.probability >= 0.5) {
         selectedPlant = best.className;
         document.getElementById("best-result").innerHTML =
-          `${sourceType === "upload" ? "사진으로 찾은" : "가장 유력한"} 식물은 <strong>${best.className}</strong> 이에요!<br>정확도 ${(best.probability * 100).toFixed(1)}%`;
+          `${sourceType === "upload" ? "사진으로 찾은" : "가장 유력한"} 식물은 <strong>${escapeHtml(best.className)}</strong> 이에요!<br>정확도 ${(best.probability * 100).toFixed(1)}%`;
       } else {
         selectedPlant = null;
         document.getElementById("best-result").innerHTML =
@@ -613,7 +763,7 @@
         const item = prediction[i];
         if (labelContainer.childNodes[i]) {
           labelContainer.childNodes[i].innerHTML =
-            `<span>${item.className}</span><span>${(item.probability * 100).toFixed(1)}%</span>`;
+            `<span>${escapeHtml(item.className)}</span><span>${(item.probability * 100).toFixed(1)}%</span>`;
         }
       }
     }
@@ -637,7 +787,7 @@
 
     function resetPrediction() {
       selectedPlant = null;
-      uploadedImageEl = null;
+      uploadedImageData = null;
 
       stopTeachableMachine();
 
@@ -656,7 +806,7 @@
     function selectPlantName(name) {
       selectedPlant = name;
       document.getElementById("best-result").innerHTML =
-        `직접 선택한 식물은 <strong>${name}</strong> 이에요.`;
+        `직접 선택한 식물은 <strong>${escapeHtml(name)}</strong> 이에요.`;
     }
 
     function getPlantBook() {
@@ -679,14 +829,15 @@
         id: Date.now(),
         name: selectedPlant,
         date: new Date().toLocaleDateString("ko-KR"),
-        memo: ""
+        memo: "",
+        image: uploadedImageData || ""
       };
 
       plantBook.unshift(newPlant);
       setPlantBook(plantBook);
       updatePlantCount();
 
-      alert(selectedPlant + "이(가) 도감에 등록되었어요!");
+      alert(selectedPlant + "이(가) 식물도감에 등록되었어요!");
     }
 
     function updatePlantCount() {
@@ -707,7 +858,7 @@
         list.innerHTML = `
           <div class="empty-box">
             아직 등록된 식물이 없어요 🌼<br />
-            식물 인식하기 화면에서 먼저 저장해보세요.
+            식물 사진 찍기 화면에서 먼저 저장해보세요.
           </div>
         `;
         return;
@@ -715,6 +866,11 @@
 
       list.innerHTML = plantBook.map(plant => `
         <div class="plant-card">
+          ${
+            plant.image
+              ? `<div style="margin-bottom:10px;"><img src="${plant.image}" alt="${escapeHtml(plant.name)}" style="width:100%; border-radius:16px; border:2px solid #f0dfb9;"></div>`
+              : ""
+          }
           <div class="plant-top">
             <div class="plant-name">${escapeHtml(plant.name)}</div>
           </div>
@@ -746,13 +902,132 @@
     }
 
     function deletePlant(id) {
-      const ok = confirm("이 식물을 도감에서 삭제할까요?");
+      const ok = confirm("이 식물을 식물도감에서 삭제할까요?");
       if (!ok) return;
 
       const plantBook = getPlantBook().filter(item => item.id !== id);
       setPlantBook(plantBook);
       updatePlantCount();
       renderPlantBook();
+    }
+
+    function openQuizScreen() {
+      showScreen("quiz-screen");
+      resetQuizScreen();
+    }
+
+    function resetQuizScreen() {
+      document.getElementById("quiz-start-box").style.display = "block";
+      document.getElementById("quiz-game-area").style.display = "none";
+      document.getElementById("quiz-end-box").style.display = "none";
+      document.getElementById("quiz-end-box").innerHTML = "";
+      document.getElementById("quiz-feedback").style.display = "none";
+      document.getElementById("quiz-feedback").innerHTML = "";
+      document.getElementById("quiz-image-box").innerHTML = `
+        <div class="camera-placeholder">퀴즈를 시작하면 식물 사진이 나와요 🌼</div>
+      `;
+      document.getElementById("quiz-options").innerHTML = "";
+    }
+
+    function shuffleArray(arr) {
+      const copied = [...arr];
+      for (let i = copied.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copied[i], copied[j]] = [copied[j], copied[i]];
+      }
+      return copied;
+    }
+
+    function startQuiz() {
+      const shuffled = shuffleArray(QUIZ_DATA);
+      quizQuestions = shuffled.slice(0, 10);
+      quizCurrentIndex = 0;
+      quizScore = 0;
+      quizAnswered = false;
+
+      document.getElementById("quiz-start-box").style.display = "none";
+      document.getElementById("quiz-game-area").style.display = "block";
+      document.getElementById("quiz-end-box").style.display = "none";
+
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      const question = quizQuestions[quizCurrentIndex];
+      quizAnswered = false;
+
+      document.getElementById("quiz-number").textContent = quizCurrentIndex + 1;
+      document.getElementById("quiz-score").textContent = quizScore;
+
+      document.getElementById("quiz-image-box").innerHTML = `
+        <img src="${question.image}" alt="${escapeHtml(question.name)}">
+      `;
+
+      const optionNames = buildQuizOptions(question.name);
+      const optionsHtml = optionNames.map(name => `
+        <button class="quiz-option" onclick="chooseQuizAnswer('${escapeJs(name)}')">
+          ${escapeHtml(name)}
+        </button>
+      `).join("");
+
+      document.getElementById("quiz-options").innerHTML = optionsHtml;
+      document.getElementById("quiz-feedback").style.display = "none";
+      document.getElementById("quiz-feedback").innerHTML = "";
+    }
+
+    function buildQuizOptions(correctName) {
+      const allNames = QUIZ_DATA.map(item => item.name).filter(name => name !== correctName);
+      const shuffledWrong = shuffleArray(allNames).slice(0, 3);
+      return shuffleArray([correctName, ...shuffledWrong]);
+    }
+
+    function chooseQuizAnswer(selected) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const question = quizQuestions[quizCurrentIndex];
+      const isCorrect = selected === question.name;
+
+      if (isCorrect) {
+        quizScore += 1;
+      }
+
+      document.getElementById("quiz-score").textContent = quizScore;
+
+      const feedbackEl = document.getElementById("quiz-feedback");
+      feedbackEl.style.display = "block";
+      feedbackEl.innerHTML = isCorrect
+        ? `정답이에요! 🎉<br><strong>${escapeHtml(question.name)}</strong> 맞아요.`
+        : `아쉬워요 😢<br>정답은 <strong>${escapeHtml(question.name)}</strong> 이에요.`;
+
+      const isLastQuestion = quizCurrentIndex >= quizQuestions.length - 1;
+
+      if (isLastQuestion) {
+        feedbackEl.innerHTML += `<br><br><button class="cute-btn blue" onclick="finishQuiz()">결과 보기</button>`;
+      } else {
+        feedbackEl.innerHTML += `<br><br><button class="cute-btn blue" onclick="nextQuizQuestion()">다음 문제</button>`;
+      }
+    }
+
+    function nextQuizQuestion() {
+      quizCurrentIndex += 1;
+      renderQuizQuestion();
+    }
+
+    function finishQuiz() {
+      document.getElementById("quiz-game-area").style.display = "none";
+      const endBox = document.getElementById("quiz-end-box");
+      endBox.style.display = "block";
+      endBox.innerHTML = `
+        <h3 style="margin-bottom:10px;">퀴즈 끝!</h3>
+        <p style="margin:0 0 14px; line-height:1.6;">
+          총 10문제 중 <strong>${quizScore}</strong>문제를 맞혔어요 🌿
+        </p>
+        <div class="row-2" style="margin-bottom:0;">
+          <button class="cute-btn blue" onclick="startQuiz()">다시 하기</button>
+          <button class="cute-btn line" onclick="goHome()">홈으로</button>
+        </div>
+      `;
     }
 
     function escapeHtml(str) {
@@ -762,6 +1037,12 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function escapeJs(str) {
+      return String(str)
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'");
     }
 
     window.addEventListener("load", () => {
