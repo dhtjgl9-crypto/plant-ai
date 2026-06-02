@@ -1,1825 +1,681 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>🌿 AI 식물도감</title>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: #f0f9f4;
-            min-height: 100vh;
-            padding: 15px;
-        }
-
-        .screen {
-            display: none;
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 25px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.15);
-            min-height: 85vh;
-        }
-
-        .screen.active {
-            display: block;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        #appTitle {
-            font-size: 2em;
-            color: #4CAF50;
-            font-weight: 700;
-            padding: 10px;
-            text-shadow: 2px 2px 0 rgba(76, 175, 80, 0.1);
-        }
-
-        h2 {
-            color: #2E7D32;
-            font-size: 1.5em;
-            font-weight: 700;
-        }
-
-        .back-btn {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #81C784;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.2s;
-            color: white;
-            font-weight: 600;
-        }
-
-        .back-btn:active {
-            transform: translateY(-50%) scale(0.95);
-            background: #66BB6A;
-        }
-
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        .main-btn {
-            background: white;
-            color: #2E7D32;
-            border: 3px solid #81C784;
-            padding: 25px;
-            border-radius: 20px;
-            font-size: 1.3em;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 700;
-            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.1);
-        }
-
-        .main-btn:active {
-            transform: scale(0.98);
-            background: #E8F5E9;
-        }
-
-        .stats {
-            text-align: center;
-            margin-top: 25px;
-            padding: 20px;
-            background: #E8F5E9;
-            border-radius: 18px;
-            font-size: 1.2em;
-            color: #2E7D32;
-            font-weight: 700;
-            border: 2px solid #C8E6C9;
-        }
-
-        .stats span {
-            color: #4CAF50;
-            font-size: 1.4em;
-        }
-
-        .ai-status {
-            text-align: center;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 15px;
-            font-weight: 600;
-            font-size: 1em;
-        }
-
-        .ai-status.ready {
-            background: #C8E6C9;
-            color: #2E7D32;
-        }
-
-        .ai-status.loading {
-            background: #FFF9C4;
-            color: #F57F17;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .camera-container {
-            text-align: center;
-            margin: 25px 0;
-        }
-
-        .photo-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        .photo-btn {
-            flex: 1;
-            background: #81C784;
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 18px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
-        }
-
-        .photo-btn:active {
-            transform: scale(0.95);
-            background: #66BB6A;
-        }
-
-        .photo-btn.camera {
-            background: #66BB6A;
-        }
-
-        .photo-btn.gallery {
-            background: #81C784;
-        }
-
-        #photoPreview {
-            max-width: 100%;
-            max-height: 350px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 3px solid #C8E6C9;
-        }
-
-        .analyzing {
-            background: #FFF9C4;
-            color: #F57F17;
-            padding: 20px;
-            border-radius: 18px;
-            margin: 20px 0;
-            text-align: center;
-            font-weight: 600;
-            border: 2px solid #FFF59D;
-        }
-
-        .analyzing .spinner {
-            display: inline-block;
-            width: 35px;
-            height: 35px;
-            border: 3px solid rgba(245, 127, 23, 0.2);
-            border-top-color: #F57F17;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #FFEBEE;
-            color: #C62828;
-            padding: 18px;
-            border-radius: 18px;
-            margin: 20px 0;
-            text-align: center;
-            font-weight: 600;
-            border: 2px solid #FFCDD2;
-            line-height: 1.6;
-        }
-
-        .error-message h4 {
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-
-        .ai-results {
-            background: #F1F8E9;
-            padding: 18px;
-            border-radius: 18px;
-            margin: 20px 0;
-            border: 2px solid #DCEDC8;
-        }
-
-        .ai-results h4 {
-            color: #558B2F;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .result-item {
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid #C8E6C9;
-        }
-
-        .result-item:active {
-            transform: scale(0.98);
-        }
-
-        .result-item.selected {
-            border-color: #4CAF50;
-            background: #E8F5E9;
-        }
-
-        .result-item h5 {
-            font-size: 1.15em;
-            margin-bottom: 5px;
-            color: #2E7D32;
-        }
-
-        .result-item .scientific-name {
-            font-size: 0.85em;
-            font-style: italic;
-            color: #689F38;
-            margin-bottom: 8px;
-        }
-
-        .confidence-bar {
-            background: #E8F5E9;
-            height: 18px;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: #81C784;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8em;
-            font-weight: 700;
-            color: white;
-            transition: width 1s ease-out;
-        }
-
-        .manual-input-section {
-            background: #FFF9C4;
-            padding: 20px;
-            border-radius: 18px;
-            margin: 20px 0;
-            border: 2px solid #FFF59D;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .manual-input-section h4 {
-            color: #F57F17;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            text-align: center;
-        }
-
-        .manual-input-section input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #FFE082;
-            border-radius: 15px;
-            font-size: 1.1em;
-            font-family: 'Noto Sans KR', sans-serif;
-            font-weight: 600;
-            color: #F57F17;
-            background: white;
-            margin-bottom: 15px;
-        }
-
-        .manual-input-section input::placeholder {
-            color: #FFB74D;
-        }
-
-        .manual-input-section input:focus {
-            outline: none;
-            border-color: #FFA726;
-        }
-
-        .plant-category {
-            margin-top: 15px;
-            margin-bottom: 10px;
-            color: #F57F17;
-            font-weight: 600;
-            font-size: 0.95em;
-            padding-left: 5px;
-        }
-
-        .plant-suggestions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .suggestion-btn {
-            background: white;
-            border: 2px solid #FFE082;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #F57F17;
-            font-weight: 600;
-        }
-
-        .suggestion-btn:active {
-            transform: scale(0.95);
-            background: #FFF9C4;
-            border-color: #FFA726;
-        }
-
-        .action-btn {
-            background: #66BB6A;
-            color: white;
-            border: none;
-            padding: 16px 30px;
-            border-radius: 20px;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin: 8px;
-            transition: all 0.2s;
-            font-weight: 700;
-            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
-        }
-
-        .action-btn:active {
-            transform: scale(0.95);
-            background: #4CAF50;
-        }
-
-        .action-btn.secondary {
-            background: #FFB74D;
-        }
-
-        .action-btn.secondary:active {
-            background: #FFA726;
-        }
-
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .plant-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 3px 15px rgba(76, 175, 80, 0.15);
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 3px solid #C8E6C9;
-        }
-
-        .plant-card:active {
-            transform: scale(0.95);
-        }
-
-        .plant-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-        .plant-card-info {
-            padding: 12px;
-            text-align: center;
-            background: #F1F8E9;
-        }
-
-        .plant-card-info h3 {
-            font-size: 1.1em;
-            color: #2E7D32;
-            margin-bottom: 5px;
-            font-weight: 700;
-        }
-
-        .plant-card-info p {
-            font-size: 0.85em;
-            color: #689F38;
-            font-weight: 600;
-        }
-
-        .empty-message {
-            text-align: center;
-            margin-top: 80px;
-            color: #81C784;
-        }
-
-        .empty-message p {
-            font-size: 1.2em;
-            margin: 12px 0;
-            font-weight: 600;
-        }
-
-        .empty-message p:first-child {
-            font-size: 3.5em;
-        }
-
-        .detail-container {
-            margin-top: 20px;
-        }
-
-        .detail-photo {
-            width: 100%;
-            max-height: 350px;
-            object-fit: cover;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 3px solid #C8E6C9;
-        }
-
-        .detail-info {
-            background: #F1F8E9;
-            padding: 20px;
-            border-radius: 18px;
-            margin-bottom: 15px;
-            border: 2px solid #DCEDC8;
-        }
-
-        .detail-info h3 {
-            color: #2E7D32;
-            margin-bottom: 12px;
-            font-size: 1.2em;
-        }
-
-        .detail-info p {
-            color: #558B2F;
-            line-height: 1.7;
-            font-weight: 600;
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            margin-top: 8px;
-        }
-
-        .detail-info .scientific {
-            font-style: italic;
-            color: #689F38;
-            font-size: 0.95em;
-        }
-
-        .growth-section {
-            background: #E8F5E9;
-            padding: 20px;
-            border-radius: 18px;
-            margin-bottom: 15px;
-            border: 2px solid #C8E6C9;
-        }
-
-        .growth-section h3 {
-            color: #2E7D32;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .growth-photos {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            margin-top: 15px;
-        }
-
-        .growth-photo-item {
-            position: relative;
-            border-radius: 15px;
-            overflow: hidden;
-            border: 2px solid #C8E6C9;
-            background: white;
-        }
-
-        .growth-photo-item img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-        }
-
-        .growth-photo-item .photo-info {
-            padding: 10px;
-            background: white;
-        }
-
-        .growth-photo-item .date-label {
-            font-size: 0.8em;
-            color: #2E7D32;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .growth-photo-item .text-label {
-            font-size: 0.85em;
-            color: #558B2F;
-            line-height: 1.4;
-        }
-
-        .growth-photo-item .delete-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(244, 67, 54, 0.95);
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-
-        .add-growth-photo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 140px;
-            background: white;
-            border: 2px dashed #81C784;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #4CAF50;
-            font-size: 2.5em;
-            font-weight: bold;
-        }
-
-        .add-growth-photo:active {
-            transform: scale(0.95);
-            background: #F1F8E9;
-        }
-
-        .edit-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .edit-btn {
-            flex: 1;
-            background: #FFB74D;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 18px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 600;
-        }
-
-        .edit-btn:active {
-            transform: scale(0.95);
-            background: #FFA726;
-        }
-
-        .edit-btn.delete {
-            background: #EF5350;
-        }
-
-        .edit-btn.delete:active {
-            background: #E53935;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 25px;
-            padding: 25px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-content h3 {
-            color: #2E7D32;
-            margin-bottom: 20px;
-            font-size: 1.3em;
-        }
-
-        .modal-content label {
-            display: block;
-            color: #558B2F;
-            font-weight: 600;
-            margin-top: 15px;
-            margin-bottom: 8px;
-        }
-
-        .modal-content input,
-        .modal-content textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #C8E6C9;
-            border-radius: 12px;
-            font-size: 1em;
-            font-family: 'Noto Sans KR', sans-serif;
-            font-weight: 600;
-            color: #2E7D32;
-        }
-
-        .modal-content textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .modal-content input:focus,
-        .modal-content textarea:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .quiz-progress {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #2E7D32;
-            background: #E8F5E9;
-            padding: 18px;
-            border-radius: 18px;
-            border: 2px solid #C8E6C9;
-        }
-
-        .quiz-photo {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 3px solid #C8E6C9;
-        }
-
-        .quiz-question h3 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #2E7D32;
-            font-size: 1.4em;
-            font-weight: 700;
-        }
-
-        .quiz-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .quiz-option {
-            padding: 20px;
-            background: white;
-            border: 3px solid #C8E6C9;
-            border-radius: 18px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 700;
-            color: #2E7D32;
-        }
-
-        .quiz-option:active {
-            transform: scale(0.95);
-        }
-
-        .quiz-option.correct {
-            background: #81C784;
-            color: white;
-            border-color: #66BB6A;
-        }
-
-        .quiz-option.wrong {
-            background: #FFAB91;
-            color: white;
-            border-color: #FF8A65;
-        }
-
-        .quiz-result {
-            text-align: center;
-            padding: 35px 20px;
-        }
-
-        .quiz-result h2 {
-            font-size: 2.5em;
-            margin-bottom: 18px;
-            color: #4CAF50;
-            font-weight: 900;
-        }
-
-        .quiz-result p {
-            font-size: 1.3em;
-            color: #689F38;
-            margin-bottom: 25px;
-            font-weight: 600;
-        }
-
-        .result-score {
-            font-size: 3.5em;
-            font-weight: 900;
-            background: #E8F5E9;
-            padding: 25px;
-            border-radius: 20px;
-            margin: 25px 0;
-            color: #4CAF50;
-            border: 3px solid #C8E6C9;
-        }
-
-        @media (max-width: 600px) {
-            .card-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .quiz-options {
-                grid-template-columns: 1fr;
-            }
-
-            .photo-buttons {
-                flex-direction: column;
-            }
-
-            .growth-photos {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>우리들의 식물도감</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: #fffdf7;
+      color: #4b4036;
+    }
+
+    .app {
+      max-width: 440px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px 14px 40px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .main-title {
+      text-align: center;
+      font-size: 31px;
+      font-weight: 800;
+      margin-top: 18px;
+      color: #5d7f52;
+      letter-spacing: -0.5px;
+    }
+
+    .main-sub {
+      text-align: center;
+      font-size: 14px;
+      color: #7d6f63;
+      margin: 10px 0 20px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: #fffaf0;
+      border: 3px solid #efd8a7;
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 6px 0 #f3e6c6;
+      margin-bottom: 16px;
+    }
+
+    .counter-box {
+      text-align: center;
+      background: #f4f9ea;
+      border: 2px solid #d7e6bb;
+      border-radius: 20px;
+      padding: 14px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      color: #567047;
+    }
+
+    .menu-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .cute-btn {
+      width: 100%;
+      border: none;
+      border-radius: 18px;
+      background: #a9d18e;
+      color: #2f3c2b;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #87b06d;
+    }
+
+    .cute-btn:active {
+      transform: translateY(1px);
+    }
+
+    .cute-btn.soft {
+      background: #ffe8b3;
+      color: #5f4a1c;
+      box-shadow: 0 4px 0 #e0c57e;
+    }
+
+    .cute-btn.pink {
+      background: #ffd9df;
+      color: #71474f;
+      box-shadow: 0 4px 0 #e7b6bf;
+    }
+
+    .cute-btn.line {
+      background: #ffffff;
+      color: #6e6257;
+      border: 2px solid #e8d2a9;
+      box-shadow: none;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 12px;
+      background: #ffe8b3;
+      color: #644e21;
+      border: 2px solid #efcd77;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      color: #5b7350;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: #6f5b4c;
+    }
+
+    .sub-text {
+      margin: 0 0 16px;
+      color: #7b6c60;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .webcam-box {
+      min-height: 310px;
+      background: #fef6e7;
+      border: 2px dashed #e8cea0;
+      border-radius: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      margin-bottom: 16px;
+      padding: 10px;
+    }
+
+    .webcam-box canvas {
+      width: 100% !important;
+      max-width: 300px;
+      height: auto !important;
+      border-radius: 18px;
+      border: 2px solid #f0dfb9;
+      background: #fff;
+    }
+
+    .camera-placeholder {
+      text-align: center;
+      color: #9a846b;
+      line-height: 1.6;
+      font-size: 15px;
+      padding: 30px 10px;
+    }
+
+    .result-box {
+      background: #fff;
+      border: 2px solid #efdfbc;
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .best-result {
+      background: #fff8ea;
+      border: 2px solid #f2ddb1;
+      border-radius: 16px;
+      padding: 14px;
+      font-weight: 800;
+      color: #5b4a3d;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .label-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .label-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fffdf8;
+      border: 2px solid #f4e7c8;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: #5f5449;
+    }
+
+    .chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      background: #fff0f2;
+      color: #7b4b56;
+      border: 2px solid #efc4cc;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .book-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .plant-card {
+      background: #fffdf8;
+      border: 2px solid #eddcb5;
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .plant-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .plant-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #5d724d;
+    }
+
+    .plant-date {
+      font-size: 12px;
+      color: #8f7f72;
+      margin-bottom: 10px;
+    }
+
+    .memo-area {
+      width: 100%;
+      min-height: 86px;
+      resize: vertical;
+      border: 2px solid #ead8af;
+      border-radius: 14px;
+      padding: 12px;
+      font-family: inherit;
+      font-size: 14px;
+      background: #fff;
+      color: #4b4036;
+      margin-bottom: 10px;
+    }
+
+    .small-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .small-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .save-btn {
+      background: #dff0c8;
+      color: #48643a;
+    }
+
+    .delete-btn {
+      background: #ffe0e0;
+      color: #8a4b4b;
+    }
+
+    .empty-box {
+      text-align: center;
+      color: #8f8175;
+      padding: 30px 10px;
+      line-height: 1.7;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #9a8d80;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 380px) {
+      .row-2,
+      .small-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- 메인 화면 -->
-    <div id="mainScreen" class="screen active">
-        <div class="header">
-            <h1 id="appTitle">🌿 AI 식물도감 🌱</h1>
+  <div class="app">
+    <!-- 홈 -->
+    <section id="home-screen" class="screen active">
+      <h1 class="main-title">우리들의 식물도감</h1>
+      <p class="main-sub">
+        식물을 찾아보고 기록하면서<br />
+        나만의 귀여운 도감을 만들어봐요 🌿
+      </p>
+
+      <div class="counter-box">
+        현재 등록된 식물: <span id="plant-count">0</span>개
+      </div>
+
+      <div class="card">
+        <div class="menu-grid">
+          <button class="cute-btn" onclick="showScreen('ai-screen')">📷 식물 인식하기</button>
+          <button class="cute-btn soft" onclick="showScreen('book-screen'); renderPlantBook();">📚 내 식물도감</button>
+          <button class="cute-btn pink" onclick="showGuide()">🌼 사용 방법 보기</button>
         </div>
-        
-        <div class="ai-status ready">
-            ✅ PlantNet AI 준비 완료!
+      </div>
+
+      <div class="card">
+        <h3>앱 소개</h3>
+        <p class="sub-text">
+          카메라로 식물을 비추면 AI가 식물 이름을 예측해줘요.<br />
+          마음에 드는 결과를 선택해서 도감에 저장할 수 있어요.
+        </p>
+      </div>
+    </section>
+
+    <!-- AI 화면 -->
+    <section id="ai-screen" class="screen">
+      <button class="back-btn" onclick="goHome()">← 홈으로</button>
+
+      <div class="card">
+        <h2>식물 친구 찾기</h2>
+        <p class="sub-text">
+          카메라를 켜고 식물을 화면 가운데에 보여주세요.<br />
+          가장 높은 확률의 식물을 추천해드려요.
+        </p>
+
+        <div class="row-2">
+          <button class="cute-btn" onclick="startTeachableMachine()">카메라 시작</button>
+          <button class="cute-btn line" onclick="stopTeachableMachine()">카메라 끄기</button>
         </div>
-        
-        <div class="button-container">
-            <button class="main-btn" onclick="goToCamera()">
-                📸 식물 촬영하기
-            </button>
-            <button class="main-btn" onclick="goToDictionary()">
-                📚 내 식물도감 보기
-            </button>
-            <button class="main-btn" onclick="goToQuiz()">
-                🎮 퀴즈 풀기
-            </button>
+
+        <div id="webcam-container" class="webcam-box">
+          <div class="camera-placeholder">
+            아직 카메라가 시작되지 않았어요 📷<br />
+            위의 버튼을 눌러 시작해보세요.
+          </div>
         </div>
-        <div class="stats">
-            <p>🌱 등록된 식물: <span id="plantCount">0</span>개 🌱</p>
+
+        <div class="result-box">
+          <div id="best-result" class="best-result">
+            아직 분석 전이에요.
+          </div>
+          <div id="label-container" class="label-list"></div>
         </div>
-    </div>
 
-    <!-- 촬영 화면 -->
-    <div id="cameraScreen" class="screen">
-        <div class="header">
-            <button class="back-btn" onclick="goToMain()">← 뒤로</button>
-            <h2>📸 AI 식물 인식</h2>
+        <h3>직접 선택하기</h3>
+        <div class="chip-wrap">
+          <button class="chip" onclick="selectPlantName('장미')">장미</button>
+          <button class="chip" onclick="selectPlantName('해바라기')">해바라기</button>
+          <button class="chip" onclick="selectPlantName('민들레')">민들레</button>
+          <button class="chip" onclick="selectPlantName('벚꽃')">벚꽃</button>
+          <button class="chip" onclick="selectPlantName('개나리')">개나리</button>
+          <button class="chip" onclick="selectPlantName('소나무')">소나무</button>
         </div>
-        
-        <div class="camera-container">
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
-            <input type="file" id="galleryInput" accept="image/*" style="display:none">
-            
-            <div class="photo-buttons">
-                <button class="photo-btn camera" onclick="takePhoto()">
-                    📷 카메라로 촬영
-                </button>
-                <button class="photo-btn gallery" onclick="selectFromGallery()">
-                    🖼️ 갤러리에서 선택
-                </button>
-            </div>
-            
-            <div id="previewContainer" style="display:none">
-                <img id="photoPreview" alt="촬영한 사진">
-            </div>
-            
-            <div id="analyzingSection" class="analyzing" style="display:none">
-                <div class="spinner"></div>
-                <h3>🤖 AI가 식물을 분석하고 있어요...</h3>
-                <p>잠시만 기다려주세요!</p>
-            </div>
 
-            <div id="errorSection" class="error-message" style="display:none">
-                <h4>⚠️ 식물 인식 실패</h4>
-                <p id="errorText"></p>
-            </div>
-            
-            <div id="aiResultsSection" class="ai-results" style="display:none">
-                <h4>🎯 AI 분석 결과 (클릭해서 선택)</h4>
-                <div id="resultsList"></div>
-            </div>
-
-            <!-- 직접 입력 섹션 -->
-            <div id="manualInputSection" class="manual-input-section" style="display:none">
-                <h4>✏️ 식물 이름 직접 입력하기</h4>
-                <input type="text" id="manualPlantName" placeholder="예: 민들레, 장미, 벚꽃..." maxlength="30">
-                
-                <div class="plant-category">🌸 봄 꽃</div>
-                <div class="plant-suggestions">
-                    <button class="suggestion-btn" onclick="selectSuggestion('벚꽃')">🌸 벚꽃</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('개나리')">💛 개나리</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('진달래')">🌺 진달래</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('철쭉')">🌺 철쭉</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('목련')">🤍 목련</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('튤립')">🌷 튤립</button>
-                </div>
-
-                <div class="plant-category">🌻 여름 꽃</div>
-                <div class="plant-suggestions">
-                    <button class="suggestion-btn" onclick="selectSuggestion('해바라기')">🌻 해바라기</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('장미')">🌹 장미</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('백일홍')">🌺 백일홍</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('봉숭아')">🌸 봉숭아</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('나팔꽃')">💜 나팔꽃</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('채송화')">🌼 채송화</button>
-                </div>
-
-                <div class="plant-category">🍂 가을 꽃</div>
-                <div class="plant-suggestions">
-                    <button class="suggestion-btn" onclick="selectSuggestion('코스모스')">🌸 코스모스</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('국화')">🌼 국화</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('맨드라미')">🔴 맨드라미</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('봉선화')">🌺 봉선화</button>
-                </div>
-
-                <div class="plant-category">🌼 사계절 꽃</div>
-                <div class="plant-suggestions">
-                    <button class="suggestion-btn" onclick="selectSuggestion('민들레')">🌼 민들레</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('토끼풀')">🍀 토끼풀</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('제비꽃')">💜 제비꽃</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('팬지')">🌸 팬지</button>
-                </div>
-
-                <div class="plant-category">🌿 풀과 나무</div>
-                <div class="plant-suggestions">
-                    <button class="suggestion-btn" onclick="selectSuggestion('강아지풀')">🌾 강아지풀</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('소나무')">🌲 소나무</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('은행나무')">🍂 은행나무</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('단풍나무')">🍁 단풍나무</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('느티나무')">🌳 느티나무</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('버드나무')">🌿 버드나무</button>
-                </div>
-
-                <div class="plant-category">🍓 열매 식물</div>
-                <div class="plant-suggestions">
-                    <button class="suggestion-btn" onclick="selectSuggestion('딸기')">🍓 딸기</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('토마토')">🍅 토마토</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('호박')">🎃 호박</button>
-                    <button class="suggestion-btn" onclick="selectSuggestion('감나무')">🟠 감나무</button>
-                </div>
-            </div>
-            
-            <div id="actionButtons" style="display:none; text-align:center;">
-                <button class="action-btn" id="registerBtn" onclick="registerPlant()" disabled>
-                    ✅ 도감에 등록하기
-                </button>
-                <button class="action-btn secondary" onclick="retakePhoto()">
-                    🔄 다시 선택하기
-                </button>
-            </div>
+        <div class="row-2" style="margin-top:16px;">
+          <button class="cute-btn soft" onclick="saveDetectedPlant()">도감에 등록하기</button>
+          <button class="cute-btn line" onclick="resetPrediction()">다시 선택하기</button>
         </div>
-    </div>
+
+        <div class="footer-note">
+          모델 결과가 애매하면 직접 식물 이름을 눌러 저장해도 돼요.
+        </div>
+      </div>
+    </section>
 
     <!-- 도감 화면 -->
-    <div id="dictionaryScreen" class="screen">
-        <div class="header">
-            <button class="back-btn" onclick="goToMain()">← 뒤로</button>
-            <h2>📚 내 식물도감</h2>
+    <section id="book-screen" class="screen">
+      <button class="back-btn" onclick="goHome()">← 홈으로</button>
+
+      <div class="card">
+        <h2>내 식물도감</h2>
+        <p class="sub-text">
+          등록한 식물들을 확인하고 메모를 남겨보세요.
+        </p>
+        <div id="book-list" class="book-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const TM_URL = "https://teachablemachine.withgoogle.com/models/8Qps0fFuQ/";
+
+    let model = null;
+    let webcam = null;
+    let labelContainer = null;
+    let maxPredictions = 0;
+    let tmRunning = false;
+    let selectedPlant = null;
+
+    function showScreen(screenId) {
+      document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+      });
+      document.getElementById(screenId).classList.add("active");
+    }
+
+    function goHome() {
+      showScreen("home-screen");
+      updatePlantCount();
+    }
+
+    function showGuide() {
+      alert(
+        "사용 방법 🌱\n\n" +
+        "1. 식물 인식하기로 이동해요.\n" +
+        "2. 카메라 시작 버튼을 눌러요.\n" +
+        "3. AI 결과를 확인해요.\n" +
+        "4. 도감에 등록하기를 누르면 저장돼요.\n" +
+        "5. 내 식물도감에서 메모도 남길 수 있어요."
+      );
+    }
+
+    async function startTeachableMachine() {
+      try {
+        if (tmRunning) return;
+
+        const modelURL = TM_URL + "model.json";
+        const metadataURL = TM_URL + "metadata.json";
+
+        if (!model) {
+          model = await tmImage.load(modelURL, metadataURL);
+          maxPredictions = model.getTotalClasses();
+        }
+
+        const flip = true;
+        webcam = new tmImage.Webcam(300, 300, flip);
+
+        await webcam.setup();
+        await webcam.play();
+
+        tmRunning = true;
+        window.requestAnimationFrame(tmLoop);
+
+        const webcamContainer = document.getElementById("webcam-container");
+        webcamContainer.innerHTML = "";
+        webcamContainer.appendChild(webcam.canvas);
+
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+
+        for (let i = 0; i < maxPredictions; i++) {
+          const row = document.createElement("div");
+          row.className = "label-item";
+          row.innerHTML = "<span>-</span><span>0%</span>";
+          labelContainer.appendChild(row);
+        }
+
+        document.getElementById("best-result").innerHTML = "분석 중이에요...";
+      } catch (error) {
+        console.error(error);
+        alert("카메라를 시작할 수 없어요. 브라우저 권한을 확인해주세요.");
+      }
+    }
+
+    async function tmLoop() {
+      if (!tmRunning || !webcam) return;
+      webcam.update();
+      await predictTeachableMachine();
+      window.requestAnimationFrame(tmLoop);
+    }
+
+    async function predictTeachableMachine() {
+      if (!model || !webcam || !labelContainer) return;
+
+      const prediction = await model.predict(webcam.canvas);
+      prediction.sort((a, b) => b.probability - a.probability);
+
+      const best = prediction[0];
+
+      if (best.probability >= 0.5) {
+        selectedPlant = best.className;
+        document.getElementById("best-result").innerHTML =
+          `가장 유력한 식물은 <strong>${best.className}</strong> 이에요!<br>정확도 ${(best.probability * 100).toFixed(1)}%`;
+      } else {
+        selectedPlant = null;
+        document.getElementById("best-result").innerHTML =
+          "아직 확신하기 어려워요.<br>식물을 더 가까이 비춰보거나 직접 선택해주세요.";
+      }
+
+      for (let i = 0; i < prediction.length; i++) {
+        const item = prediction[i];
+        if (labelContainer.childNodes[i]) {
+          labelContainer.childNodes[i].innerHTML =
+            `<span>${item.className}</span><span>${(item.probability * 100).toFixed(1)}%</span>`;
+        }
+      }
+    }
+
+    function stopTeachableMachine() {
+      tmRunning = false;
+
+      if (webcam) {
+        webcam.stop();
+        webcam = null;
+      }
+
+      const webcamContainer = document.getElementById("webcam-container");
+      webcamContainer.innerHTML = `
+        <div class="camera-placeholder">
+          카메라가 꺼졌어요 📷<br />
+          다시 시작하려면 버튼을 눌러주세요.
         </div>
-        
-        <div id="plantCardContainer" class="card-container"></div>
-        
-        <div id="emptyMessage" class="empty-message" style="display:none">
-            <p>🌱</p>
-            <p>아직 등록된 식물이 없어요!</p>
-            <p>식물을 찾아 촬영해보세요 🌿</p>
+      `;
+    }
+
+    function resetPrediction() {
+      selectedPlant = null;
+      document.getElementById("best-result").innerHTML = "아직 분석 전이에요.";
+      document.getElementById("label-container").innerHTML = "";
+    }
+
+    function selectPlantName(name) {
+      selectedPlant = name;
+      document.getElementById("best-result").innerHTML =
+        `직접 선택한 식물은 <strong>${name}</strong> 이에요.`;
+    }
+
+    function getPlantBook() {
+      return JSON.parse(localStorage.getItem("ourPlantBook") || "[]");
+    }
+
+    function setPlantBook(data) {
+      localStorage.setItem("ourPlantBook", JSON.stringify(data));
+    }
+
+    function saveDetectedPlant() {
+      if (!selectedPlant) {
+        alert("먼저 AI 분석을 하거나 식물 이름을 직접 선택해주세요.");
+        return;
+      }
+
+      const plantBook = getPlantBook();
+
+      const newPlant = {
+        id: Date.now(),
+        name: selectedPlant,
+        date: new Date().toLocaleDateString("ko-KR"),
+        memo: ""
+      };
+
+      plantBook.unshift(newPlant);
+      setPlantBook(plantBook);
+      updatePlantCount();
+
+      alert(selectedPlant + "이(가) 도감에 등록되었어요!");
+    }
+
+    function updatePlantCount() {
+      const plantBook = getPlantBook();
+      const countEl = document.getElementById("plant-count");
+      if (countEl) {
+        countEl.textContent = plantBook.length;
+      }
+    }
+
+    function renderPlantBook() {
+      const plantBook = getPlantBook();
+      const list = document.getElementById("book-list");
+
+      if (!list) return;
+
+      if (plantBook.length === 0) {
+        list.innerHTML = `
+          <div class="empty-box">
+            아직 등록된 식물이 없어요 🌼<br />
+            식물 인식하기 화면에서 먼저 저장해보세요.
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = plantBook.map(plant => `
+        <div class="plant-card">
+          <div class="plant-top">
+            <div class="plant-name">${plant.name}</div>
+          </div>
+          <div class="plant-date">등록일: ${plant.date}</div>
+          <textarea
+            class="memo-area"
+            id="memo-${plant.id}"
+            placeholder="이 식물에 대한 메모를 남겨보세요..."
+          >${escapeHtml(plant.memo || "")}</textarea>
+          <div class="small-row">
+            <button class="small-btn save-btn" onclick="saveMemo(${plant.id})">메모 저장</button>
+            <button class="small-btn delete-btn" onclick="deletePlant(${plant.id})">삭제하기</button>
+          </div>
         </div>
-    </div>
+      `).join("");
+    }
 
-    <!-- 상세정보 화면 -->
-    <div id="detailScreen" class="screen">
-        <div class="header">
-            <button class="back-btn" onclick="goToDictionary()">← 뒤로</button>
-            <h2 id="detailPlantName"></h2>
-        </div>
-        
-        <div class="detail-container">
-            <img id="detailPhoto" class="detail-photo" alt="식물 사진">
-            
-            <div class="detail-info">
-                <h3>🌿 식물 정보</h3>
-                <p class="scientific" id="detailScientific"></p>
-                <p id="detailCommonNames"></p>
-                <p id="detailCharacteristics"></p>
-                <p style="font-size: 0.9em; color: #689F38; margin-top: 10px;">
-                    📅 등록일: <span id="detailDate"></span>
-                </p>
-            </div>
+    function saveMemo(id) {
+      const plantBook = getPlantBook();
+      const memoEl = document.getElementById(`memo-${id}`);
+      if (!memoEl) return;
 
-            <!-- 성장 과정 섹션 -->
-            <div class="growth-section">
-                <h3>🌱 성장 과정</h3>
-                <div class="growth-photos" id="growthPhotos"></div>
-            </div>
+      const target = plantBook.find(item => item.id === id);
+      if (!target) return;
 
-            <div class="edit-buttons">
-                <button class="edit-btn" onclick="editPlantInfo()">✏️ 정보 수정</button>
-                <button class="edit-btn delete" onclick="deletePlant()">🗑️ 삭제</button>
-            </div>
-        </div>
-    </div>
+      target.memo = memoEl.value;
+      setPlantBook(plantBook);
+      alert("메모가 저장되었어요!");
+    }
 
-    <!-- 수정 모달 -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <h3>✏️ 식물 정보 수정</h3>
-            
-            <label>식물 이름</label>
-            <input type="text" id="editName" placeholder="식물 이름">
-            
-            <label>학명 (선택)</label>
-            <input type="text" id="editScientific" placeholder="학명">
-            
-            <label>다른 이름 (선택)</label>
-            <input type="text" id="editCommonNames" placeholder="쉼표로 구분">
-            
-            <label>식물 특징 (선택)</label>
-            <textarea id="editCharacteristics" placeholder="예: 봄에 노란 꽃이 피고, 햇빛을 좋아해요"></textarea>
-            
-            <div class="modal-buttons">
-                <button class="action-btn" onclick="saveEdit()">💾 저장</button>
-                <button class="action-btn secondary" onclick="closeEditModal()">❌ 취소</button>
-            </div>
-        </div>
-    </div>
+    function deletePlant(id) {
+      const ok = confirm("이 식물을 도감에서 삭제할까요?");
+      if (!ok) return;
 
-    <!-- 성장과정 추가 모달 -->
-    <div id="growthModal" class="modal">
-        <div class="modal-content">
-            <h3>🌱 성장 과정 추가</h3>
-            
-            <input type="file" id="growthPhotoInput" accept="image/*" style="display:none">
-            
-            <label>사진 선택</label>
-            <button class="action-btn" onclick="document.getElementById('growthPhotoInput').click()">
-                📷 사진 선택하기
-            </button>
-            
-            <div id="growthPreview" style="margin: 15px 0; display:none;">
-                <img id="growthPreviewImg" style="max-width: 100%; border-radius: 15px; border: 2px solid #C8E6C9;">
-            </div>
-            
-            <label>메모 (선택)</label>
-            <textarea id="growthText" placeholder="예: 첫 번째 잎이 나왔어요!"></textarea>
-            
-            <div class="modal-buttons">
-                <button class="action-btn" id="saveGrowthBtn" onclick="saveGrowthPhoto()" disabled>💾 저장</button>
-                <button class="action-btn secondary" onclick="closeGrowthModal()">❌ 취소</button>
-            </div>
-        </div>
-    </div>
+      const plantBook = getPlantBook().filter(item => item.id !== id);
+      setPlantBook(plantBook);
+      updatePlantCount();
+      renderPlantBook();
+    }
 
-    <!-- 퀴즈 화면 -->
-    <div id="quizScreen" class="screen">
-        <div class="header">
-            <button class="back-btn" onclick="goToMain()">← 뒤로</button>
-            <h2>🎮 식물 이름 맞추기</h2>
-        </div>
-        
-        <div id="quizContainer">
-            <div class="quiz-progress">
-                <span id="quizProgress">1/5</span>
-                <span id="quizScore">⭐ 점수: 0</span>
-            </div>
-            
-            <div class="quiz-question">
-                <img id="quizPhoto" class="quiz-photo" alt="퀴즈 식물">
-                <h3>🤔 이 식물의 이름은?</h3>
-            </div>
-            
-            <div class="quiz-options">
-                <button class="quiz-option" onclick="selectAnswer(0)"></button>
-                <button class="quiz-option" onclick="selectAnswer(1)"></button>
-                <button class="quiz-option" onclick="selectAnswer(2)"></button>
-                <button class="quiz-option" onclick="selectAnswer(3)"></button>
-            </div>
-        </div>
-        
-        <div id="quizResult" class="quiz-result" style="display:none">
-            <h2 id="resultTitle"></h2>
-            <p id="resultMessage"></p>
-            <div class="result-score">
-                <span id="finalScore"></span>
-            </div>
-            <button class="action-btn" onclick="restartQuiz()">🔄 다시 풀기</button>
-            <button class="action-btn secondary" onclick="goToMain()">🏠 메인으로</button>
-        </div>
-    </div>
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-    <script>
-        // PlantNet API 설정
-        const PLANTNET_API_KEY = '2b10JQUxZEOliyPWrIAgktkX7u';
-        const PLANTNET_API_URL = 'https://my-api.plantnet.org/v2/identify/all';
-
-        // 전역 변수
-        let plantCards = [];
-        let currentPhoto = null;
-        let currentPhotoFile = null;
-        let currentAIResults = [];
-        let selectedPlant = null;
-        let quizQuestions = [];
-        let currentQuizIndex = 0;
-        let quizScore = 0;
-        let manualInputMode = false;
-        let currentEditingCardId = null;
-        let tempGrowthPhoto = null;
-
-        // PlantNet AI 식물 인식
-        async function identifyPlantWithPlantNet(imageFile) {
-            try {
-                console.log('PlantNet API 호출 시작...');
-                
-                // 이미지 리사이징
-                const resizedFile = await resizeImage(imageFile, 1024);
-                
-                const formData = new FormData();
-                formData.append('images', resizedFile);
-                formData.append('organs', 'auto');
-                
-                const apiUrl = `${PLANTNET_API_URL}?api-key=${PLANTNET_API_KEY}`;
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    throw new Error(`API_ERROR_${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    const results = data.results.slice(0, 5).map(result => {
-                        const koreanName = result.species.commonNames?.find(name => 
-                            /[가-힣]/.test(name)
-                        );
-                        
-                        return {
-                            scientificName: result.species.scientificNameWithoutAuthor,
-                            commonNames: result.species.commonNames || [],
-                            koreanName: koreanName || null,
-                            score: Math.round(result.score * 100)
-                        };
-                    });
-                    
-                    return results;
-                }
-                
-                return null;
-                
-            } catch (error) {
-                console.error('PlantNet API 오류:', error);
-                throw error;
-            }
-        }
-
-        // 이미지 리사이징
-        function resizeImage(file, maxSize) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        if (width > height) {
-                            if (width > maxSize) {
-                                height *= maxSize / width;
-                                width = maxSize;
-                            }
-                        } else {
-                            if (height > maxSize) {
-                                width *= maxSize / height;
-                                height = maxSize;
-                            }
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        canvas.toBlob((blob) => {
-                            if (blob) {
-                                resolve(new File([blob], file.name, {
-                                    type: 'image/jpeg',
-                                    lastModified: Date.now()
-                                }));
-                            } else {
-                                reject(new Error('이미지 변환 실패'));
-                            }
-                        }, 'image/jpeg', 0.85);
-                    };
-                    img.onerror = () => reject(new Error('이미지 로드 실패'));
-                    img.src = e.target.result;
-                };
-                reader.onerror = () => reject(new Error('파일 읽기 실패'));
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPlantCards();
-            updatePlantCount();
-            
-            document.getElementById('cameraInput').addEventListener('change', handlePhotoCapture);
-            document.getElementById('galleryInput').addEventListener('change', handlePhotoCapture);
-            document.getElementById('growthPhotoInput').addEventListener('change', handleGrowthPhotoSelect);
-            
-            document.getElementById('manualPlantName').addEventListener('input', function(e) {
-                const value = e.target.value.trim();
-                document.getElementById('registerBtn').disabled = value.length === 0;
-            });
-        });
-
-        function loadPlantCards() {
-            const saved = localStorage.getItem('plantCards');
-            if (saved) {
-                plantCards = JSON.parse(saved);
-            }
-        }
-
-        function savePlantCards() {
-            localStorage.setItem('plantCards', JSON.stringify(plantCards));
-        }
-
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        function goToMain() {
-            showScreen('mainScreen');
-            updatePlantCount();
-        }
-
-        function goToCamera() {
-            showScreen('cameraScreen');
-            resetCamera();
-        }
-
-        function goToDictionary() {
-            showScreen('dictionaryScreen');
-            displayPlantCards();
-        }
-
-        function goToQuiz() {
-            if (plantCards.length < 4) {
-                alert('🌱 퀴즈를 풀려면 식물을 최소 4개 이상 등록해주세요!');
-                return;
-            }
-            showScreen('quizScreen');
-            startQuiz();
-        }
-
-        function updatePlantCount() {
-            document.getElementById('plantCount').textContent = plantCards.length;
-        }
-
-        function resetCamera() {
-            document.getElementById('previewContainer').style.display = 'none';
-            document.getElementById('analyzingSection').style.display = 'none';
-            document.getElementById('errorSection').style.display = 'none';
-            document.getElementById('aiResultsSection').style.display = 'none';
-            document.getElementById('manualInputSection').style.display = 'none';
-            document.getElementById('actionButtons').style.display = 'none';
-            document.getElementById('manualPlantName').value = '';
-            currentPhoto = null;
-            currentPhotoFile = null;
-            currentAIResults = [];
-            selectedPlant = null;
-            manualInputMode = false;
-        }
-
-        function takePhoto() {
-            document.getElementById('cameraInput').click();
-        }
-
-        function selectFromGallery() {
-            document.getElementById('galleryInput').click();
-        }
-
-        async function handlePhotoCapture(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.startsWith('image/')) {
-                alert('이미지 파일만 선택할 수 있어요!');
-                return;
-            }
-            
-            if (file.size > 20 * 1024 * 1024) {
-                alert('파일 크기가 너무 커요! (최대 20MB)');
-                return;
-            }
-            
-            currentPhotoFile = file;
-            
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                currentPhoto = e.target.result;
-                document.getElementById('photoPreview').src = currentPhoto;
-                document.getElementById('previewContainer').style.display = 'block';
-                document.getElementById('analyzingSection').style.display = 'block';
-                document.getElementById('errorSection').style.display = 'none';
-                document.getElementById('aiResultsSection').style.display = 'none';
-                document.getElementById('manualInputSection').style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'none';
-                
-                try {
-                    const results = await identifyPlantWithPlantNet(currentPhotoFile);
-                    
-                    document.getElementById('analyzingSection').style.display = 'none';
-                    
-                    if (results && results.length > 0) {
-                        currentAIResults = results;
-                        displayAIResults(results);
-                    } else {
-                        showManualInput('AI가 식물을 인식하지 못했어요 😢\n\n아래에서 식물 이름을 직접 선택하거나 입력해주세요!');
-                    }
-                } catch (error) {
-                    document.getElementById('analyzingSection').style.display = 'none';
-                    
-                    let errorMsg = '🔧 AI 인식에 실패했어요\n\n';
-                    
-                    if (error.message === 'TIMEOUT' || error.name === 'AbortError') {
-                        errorMsg += '⏰ 시간이 너무 오래 걸렸어요\n';
-                    } else if (error.message.includes('API_ERROR_429')) {
-                        errorMsg += '⏰ 오늘의 무료 사용 횟수 초과\n';
-                    } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
-                        errorMsg += '📡 인터넷 연결을 확인해주세요\n';
-                    }
-                    
-                    errorMsg += '\n아래에서 식물 이름을 직접 선택하거나 입력할 수 있어요!';
-                    
-                    showManualInput(errorMsg);
-                }
-            };
-            
-            reader.onerror = function() {
-                alert('이미지를 불러올 수 없어요. 다시 시도해주세요.');
-            };
-            
-            reader.readAsDataURL(file);
-        }
-
-        function showManualInput(message) {
-            document.getElementById('errorText').textContent = message;
-            document.getElementById('errorSection').style.display = 'block';
-            document.getElementById('manualInputSection').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'block';
-            document.getElementById('registerBtn').disabled = true;
-            manualInputMode = true;
-        }
-
-        function displayAIResults(results) {
-            const container = document.getElementById('resultsList');
-            container.innerHTML = '';
-            
-            results.forEach((result, index) => {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = 'result-item';
-                resultDiv.onclick = () => selectAIResult(index);
-                
-                let displayName = result.koreanName || 
-                                 (result.commonNames.length > 0 ? result.commonNames[0] : '') ||
-                                 result.scientificName;
-                
-                resultDiv.innerHTML = `
-                    <h5>${displayName}</h5>
-                    <div class="scientific-name">${result.scientificName}</div>
-                    ${result.commonNames.length > 0 ? 
-                        `<div style="font-size: 0.85em; color: #689F38; margin-top: 3px;">
-                            ${result.commonNames.slice(0, 2).join(', ')}
-                        </div>` : ''}
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" style="width: ${result.score}%">
-                            ${result.score}%
-                        </div>
-                    </div>
-                `;
-                
-                container.appendChild(resultDiv);
-            });
-            
-            document.getElementById('aiResultsSection').style.display = 'block';
-            document.getElementById('manualInputSection').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'block';
-            document.getElementById('registerBtn').disabled = true;
-        }
-
-        function selectAIResult(index) {
-            document.querySelectorAll('.result-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            document.querySelectorAll('.result-item')[index].classList.add('selected');
-            
-            selectedPlant = currentAIResults[index];
-            document.getElementById('registerBtn').disabled = false;
-            manualInputMode = false;
-            document.getElementById('manualPlantName').value = '';
-        }
-
-        function selectSuggestion(plantName) {
-            document.getElementById('manualPlantName').value = plantName;
-            document.getElementById('registerBtn').disabled = false;
-            manualInputMode = true;
-            
-            document.querySelectorAll('.result-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            selectedPlant = null;
-        }
-
-        function registerPlant() {
-            if (!currentPhoto) {
-                alert('📷 사진을 먼저 선택해주세요!');
-                return;
-            }
-            
-            let plantName, scientificName, commonNames, koreanName;
-            
-            if (manualInputMode || document.getElementById('manualPlantName').value.trim()) {
-                plantName = document.getElementById('manualPlantName').value.trim();
-                if (!plantName) {
-                    alert('🌼 식물 이름을 입력해주세요!');
-                    return;
-                }
-                scientificName = '직접 입력';
-                commonNames = [plantName];
-                koreanName = plantName;
-            } else if (selectedPlant) {
-                plantName = selectedPlant.koreanName || 
-                           (selectedPlant.commonNames.length > 0 ? selectedPlant.commonNames[0] : '') ||
-                           selectedPlant.scientificName;
-                scientificName = selectedPlant.scientificName;
-                commonNames = selectedPlant.commonNames;
-                koreanName = selectedPlant.koreanName;
-            } else {
-                alert('🌼 식물을 선택하거나 이름을 입력해주세요!');
-                return;
-            }
-            
-            const newCard = {
-                id: Date.now(),
-                name: plantName,
-                scientificName: scientificName,
-                commonNames: commonNames,
-                koreanName: koreanName,
-                photo: currentPhoto,
-                date: new Date().toLocaleDateString('ko-KR'),
-                score: selectedPlant ? selectedPlant.score : 100,
-                characteristics: '',
-                growthPhotos: []
-            };
-            
-            plantCards.push(newCard);
-            savePlantCards();
-            
-            alert('🎉 ' + plantName + '이(가) 도감에 등록되었어요!');
-            
-            goToMain();
-        }
-
-        function retakePhoto() {
-            resetCamera();
-            document.getElementById('cameraInput').value = '';
-            document.getElementById('galleryInput').value = '';
-        }
-
-        function displayPlantCards() {
-            const container = document.getElementById('plantCardContainer');
-            const emptyMessage = document.getElementById('emptyMessage');
-            
-            container.innerHTML = '';
-            
-            if (plantCards.length === 0) {
-                emptyMessage.style.display = 'block';
-                return;
-            }
-            
-            emptyMessage.style.display = 'none';
-            
-            plantCards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'plant-card';
-                cardElement.onclick = () => showPlantDetail(card.id);
-                
-                cardElement.innerHTML = `
-                    <img src="${card.photo}" alt="${card.name}">
-                    <div class="plant-card-info">
-                        <h3>${card.name}</h3>
-                        <p>${card.date}</p>
-                    </div>
-                `;
-                
-                container.appendChild(cardElement);
-            });
-        }
-
-        function showPlantDetail(cardId) {
-            const card = plantCards.find(c => c.id === cardId);
-            if (!card) return;
-            
-            currentEditingCardId = cardId;
-            
-            document.getElementById('detailPlantName').textContent = card.name;
-            document.getElementById('detailPhoto').src = card.photo;
-            document.getElementById('detailScientific').textContent = card.scientificName;
-            document.getElementById('detailDate').textContent = card.date;
-            
-            let otherNames = '다른 이름: ';
-            if (card.commonNames && card.commonNames.length > 0) {
-                otherNames += card.commonNames.join(', ');
-            } else {
-                otherNames += '없음';
-            }
-            document.getElementById('detailCommonNames').textContent = otherNames;
-            
-            const charElement = document.getElementById('detailCharacteristics');
-            if (card.characteristics && card.characteristics.trim()) {
-                charElement.textContent = '특징: ' + card.characteristics;
-                charElement.style.display = 'block';
-            } else {
-                charElement.style.display = 'none';
-            }
-            
-            displayGrowthPhotos(card);
-            
-            showScreen('detailScreen');
-        }
-
-        function displayGrowthPhotos(card) {
-            const container = document.getElementById('growthPhotos');
-            container.innerHTML = '';
-            
-            if (card.growthPhotos && card.growthPhotos.length > 0) {
-                card.growthPhotos.forEach((photo, index) => {
-                    const photoDiv = document.createElement('div');
-                    photoDiv.className = 'growth-photo-item';
-                    photoDiv.innerHTML = `
-                        <img src="${photo.image}" alt="성장 ${index + 1}">
-                        <div class="photo-info">
-                            <div class="date-label">${photo.date}</div>
-                            ${photo.text ? `<div class="text-label">${photo.text}</div>` : ''}
-                        </div>
-                        <button class="delete-btn" onclick="deleteGrowthPhoto(${index})">×</button>
-                    `;
-                    container.appendChild(photoDiv);
-                });
-            }
-            
-            const addBtn = document.createElement('div');
-            addBtn.className = 'add-growth-photo';
-            addBtn.onclick = openGrowthModal;
-            addBtn.textContent = '+';
-            container.appendChild(addBtn);
-        }
-
-        function openGrowthModal() {
-            document.getElementById('growthText').value = '';
-            document.getElementById('growthPreview').style.display = 'none';
-            document.getElementById('saveGrowthBtn').disabled = true;
-            tempGrowthPhoto = null;
-            document.getElementById('growthModal').classList.add('active');
-        }
-
-        function closeGrowthModal() {
-            document.getElementById('growthModal').classList.remove('active');
-            document.getElementById('growthPhotoInput').value = '';
-        }
-
-        function handleGrowthPhotoSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.startsWith('image/')) {
-                alert('이미지 파일만 선택할 수 있어요!');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                tempGrowthPhoto = e.target.result;
-                document.getElementById('growthPreviewImg').src = tempGrowthPhoto;
-                document.getElementById('growthPreview').style.display = 'block';
-                document.getElementById('saveGrowthBtn').disabled = false;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function saveGrowthPhoto() {
-            if (!tempGrowthPhoto) {
-                alert('사진을 선택해주세요!');
-                return;
-            }
-            
-            const card = plantCards.find(c => c.id === currentEditingCardId);
-            if (!card) return;
-            
-            if (!card.growthPhotos) {
-                card.growthPhotos = [];
-            }
-            
-            card.growthPhotos.push({
-                image: tempGrowthPhoto,
-                date: new Date().toLocaleDateString('ko-KR'),
-                text: document.getElementById('growthText').value.trim()
-            });
-            
-            savePlantCards();
-            displayGrowthPhotos(card);
-            closeGrowthModal();
-            
-            alert('🌱 성장 과정이 추가되었어요!');
-        }
-
-        function deleteGrowthPhoto(index) {
-            if (!confirm('이 성장 과정 사진을 삭제할까요?')) return;
-            
-            const card = plantCards.find(c => c.id === currentEditingCardId);
-            if (!card) return;
-            
-            card.growthPhotos.splice(index, 1);
-            savePlantCards();
-            displayGrowthPhotos(card);
-            
-            alert('🗑️ 사진이 삭제되었어요!');
-        }
-
-        function editPlantInfo() {
-            const card = plantCards.find(c => c.id === currentEditingCardId);
-            if (!card) return;
-            
-            document.getElementById('editName').value = card.name;
-            document.getElementById('editScientific').value = card.scientificName === '직접 입력' ? '' : card.scientificName;
-            document.getElementById('editCommonNames').value = card.commonNames ? card.commonNames.join(', ') : '';
-            document.getElementById('editCharacteristics').value = card.characteristics || '';
-            
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-
-        function saveEdit() {
-            const card = plantCards.find(c => c.id === currentEditingCardId);
-            if (!card) return;
-            
-            const newName = document.getElementById('editName').value.trim();
-            if (!newName) {
-                alert('식물 이름을 입력해주세요!');
-                return;
-            }
-            
-            card.name = newName;
-            card.scientificName = document.getElementById('editScientific').value.trim() || '직접 입력';
-            
-            const commonNamesInput = document.getElementById('editCommonNames').value.trim();
-            card.commonNames = commonNamesInput ? commonNamesInput.split(',').map(n => n.trim()) : [newName];
-            
-            card.characteristics = document.getElementById('editCharacteristics').value.trim();
-            
-            savePlantCards();
-            closeEditModal();
-            showPlantDetail(currentEditingCardId);
-            
-            alert('✅ 식물 정보가 수정되었어요!');
-        }
-
-        function deletePlant() {
-            if (!confirm('정말로 이 식물을 삭제할까요?\n성장 과정 사진도 모두 삭제됩니다.')) return;
-            
-            plantCards = plantCards.filter(c => c.id !== currentEditingCardId);
-            savePlantCards();
-            
-            alert('🗑️ 식물이 삭제되었어요!');
-            goToDictionary();
-        }
-
-        function startQuiz() {
-            document.getElementById('quizContainer').style.display = 'block';
-            document.getElementById('quizResult').style.display = 'none';
-            
-            currentQuizIndex = 0;
-            quizScore = 0;
-            
-            generateQuizQuestions();
-            showQuizQuestion();
-        }
-
-        function generateQuizQuestions() {
-            const shuffled = [...plantCards].sort(() => Math.random() - 0.5);
-            
-            quizQuestions = shuffled.slice(0, Math.min(5, shuffled.length)).map(card => {
-                const correctAnswer = card.name;
-                
-                const wrongAnswers = plantCards
-                    .filter(c => c.name !== correctAnswer)
-                    .map(c => c.name)
-                    .filter((name, index, self) => self.indexOf(name) === index)
-                    .sort(() => Math.random() - 0.5)
-                    .slice(0, 3);
-                
-                const options = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
-                
-                return {
-                    photo: card.photo,
-                    correctAnswer: correctAnswer,
-                    options: options
-                };
-            });
-        }
-
-        function showQuizQuestion() {
-            if (currentQuizIndex >= quizQuestions.length) {
-                showQuizResult();
-                return;
-            }
-            
-            const question = quizQuestions[currentQuizIndex];
-            
-            document.getElementById('quizProgress').textContent = `${currentQuizIndex + 1}/${quizQuestions.length}`;
-            document.getElementById('quizScore').textContent = `⭐ 점수: ${quizScore}`;
-            document.getElementById('quizPhoto').src = question.photo;
-            
-            const optionButtons = document.querySelectorAll('.quiz-option');
-            optionButtons.forEach((btn, index) => {
-                btn.textContent = question.options[index] || '';
-                btn.className = 'quiz-option';
-                btn.disabled = false;
-            });
-        }
-
-        function selectAnswer(optionIndex) {
-            const question = quizQuestions[currentQuizIndex];
-            const selectedAnswer = question.options[optionIndex];
-            const optionButtons = document.querySelectorAll('.quiz-option');
-            
-            optionButtons.forEach(btn => btn.disabled = true);
-            
-            if (selectedAnswer === question.correctAnswer) {
-                optionButtons[optionIndex].classList.add('correct');
-                quizScore += 20;
-            } else {
-                optionButtons[optionIndex].classList.add('wrong');
-                
-                optionButtons.forEach((btn, index) => {
-                    if (question.options[index] === question.correctAnswer) {
-                        btn.classList.add('correct');
-                    }
-                });
-            }
-            
-            setTimeout(() => {
-                currentQuizIndex++;
-                showQuizQuestion();
-            }, 1500);
-        }
-
-        function showQuizResult() {
-            document.getElementById('quizContainer').style.display = 'none';
-            document.getElementById('quizResult').style.display = 'block';
-            
-            const percentage = (quizScore / (quizQuestions.length * 20)) * 100;
-            
-            let title, message;
-            if (percentage === 100) {
-                title = '🌟 완벽해요!';
-                message = '모든 식물을 다 알고 있네요! 🎉';
-            } else if (percentage >= 60) {
-                title = '👏 잘했어요!';
-                message = '식물 박사가 다 되었어요! 🌿';
-            } else {
-                title = '💪 다시 도전!';
-                message = '조금만 더 공부하면 완벽해요! 🌱';
-            }
-            
-            document.getElementById('resultTitle').textContent = title;
-            document.getElementById('resultMessage').textContent = message;
-            document.getElementById('finalScore').textContent = `${quizScore}점`;
-        }
-
-        function restartQuiz() {
-            startQuiz();
-        }
-    </script>
+    window.addEventListener("load", () => {
+      updatePlantCount();
+    });
+  </script>
 </body>
 </html>
